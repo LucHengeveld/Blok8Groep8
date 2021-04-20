@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Webapp</title>
+    <meta name="Margo Raijmakers" content="WebApp HTML" charset="UTF-8">
+</head>
+<body>
+    <form method="post">
+        <p>
+            Ziekte kenmerken <br>
+            <label>
+                <input type="text" name="or_search">
+            </label> (of)<br>
+            &<br>
+            <label>
+                <input type="text" name="and_search">
+            </label> (en)<br>
+        </p>
+        <p>
+            Gennaam (split gennamen op ',') (optioneel) <br>
+            <label>
+                <input type="text" name="gene_search">
+            </label><br>
+        </p>
+        <p>
+            Publicatie datum (vanaf) (optioneel) <br>
+            <!--TODO misschien dit?-->
+            <!--  <input type="date" name="date_search"><br> -->
+            <!--TODO in plaats van: -->
+            <label>
+                <input type="text" name="date_search">
+            </label><br>
+        </p>
+        <p>
+            Genpanel selectie (optioneel) <br>
+            <label>
+                <input type="text" name="genepanel_search">
+            </label><br>
+        </p>
+        <input type="submit">
+    </form>
+</body>
+</html>
