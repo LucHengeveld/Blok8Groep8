@@ -11,7 +11,7 @@ app = Flask(__name__)
 @app.route('/', methods=["POST", "GET"])
 def get_filters():
     """
-
+    todo docstrings
     """
     if request.method == "POST":
         or_search = request.form.get("or_search", "")
