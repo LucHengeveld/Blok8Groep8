@@ -17,6 +17,10 @@
             <label>
                 <input type="text" name="and_search">
             </label> (en)<br>
+            &<br>
+            <label>
+                <input type="text" name="not_search">
+            </label> (niet)<br>
         </p>
 
         <p>
@@ -50,6 +54,7 @@
                 "Ingevoerde filters <br>" +
                 "Ziekte kenmerken (of): {{ or_search }} <br>" +
                 "Ziekte kenmerken (en): {{ and_search }} <br>" +
+                "Ziekte kenmerken (niet): {{ not_search }} <br>" +
                 "Gennaam: {{ gene_search }} <br>" +
                 "Publicatie datum: {{ date_search }} <br>" +
                 "Genpanel selectie: {{ genepanel_search }} <br>" +

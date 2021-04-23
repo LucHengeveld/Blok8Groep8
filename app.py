@@ -16,22 +16,26 @@ def get_filters():
     if request.method == "POST":
         or_search = request.form.get("or_search", "")
         and_search = request.form.get("and_search", "")
+        not_search = request.form.get("not_search", "")
         gene_search = request.form.get("gene_search", "")
         date_search = request.form.get("date_search", "")
         genepanel_search = request.form.get("or_search", "")
         print(or_search)
         print(and_search)
+        print(not_search)
         print(gene_search)
         print(date_search)
         print(genepanel_search)
         return render_template("WebApp.html", or_search=or_search,
                                and_search=and_search,
+                               not_search=not_search,
                                gene_search=gene_search,
                                date_search=date_search,
                                genepanel_search=genepanel_search)
     else:
         return render_template("WebApp.html", or_search="",
                                and_search="",
+                               not_search="",
                                gene_search="",
                                date_search="",
                                genepanel_search="")
