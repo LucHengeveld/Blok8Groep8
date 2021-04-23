@@ -41,7 +41,8 @@
         </p>
 
         <input type="submit">
-        <button type="button" onclick="showResults()">Laat gekozen filters zien</button>
+
+        <button type="button" onclick="showResults()">Laat resultaten zien</button>
         <div id="results"></div>
         <script>function showResults() {
             document.getElementById("results").innerHTML =
@@ -52,7 +53,22 @@
                 "Gennaam: {{ gene_search }} <br>" +
                 "Publicatie datum: {{ date_search }} <br>" +
                 "Genpanel selectie: {{ genepanel_search }} <br>" +
-                "<hr>";
+                "<hr>" +
+                "<table id='table' style='width:100%'>" +
+                    "<tr>" +
+                        "<th>Gennaam</th>" +
+                        "<th>Titel artikel</th>" +
+                        "<th>Publicatiedatum</th>" +
+                        "<th>Genpanel</th>" +
+                    "</tr>" +
+                    <!-- todo: loop met resultaten -->
+                    "<tr>" +
+                        "<td>AARS1</td>" +
+                        "<td>Naam+hyperlink</td>" +
+                        "<td>10-04-2020</td>" +
+                        "<td>Neuropathies</td>" +
+                    "</tr>" +
+                "</table>";
         }
         </script>
     </form>
