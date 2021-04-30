@@ -3,3 +3,199 @@ body {
 	color: black;
 	background-color: lightblue;
 }
+
+html {
+    background-color: #ffffff;
+}
+
+a.infolink {
+    text-decoration: underline;
+    color: black;
+}
+
+a.infolink:hover {
+    color: blue;
+}
+
+a.infolink:active {
+    color: green;
+}
+
+/*menubalk styling*/
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: black;
+    color: white;
+}
+
+li {
+    float: left;
+
+}
+
+li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+li a.active {
+    background-color: #404040;
+    color: white;
+}
+
+li a:hover:not(.active) {
+    background-color: #4d4d4d;
+    color: white;
+}
+
+footer {
+    width: 100%;
+    height: 5%;
+    background-color: black;
+    left: 0;
+    bottom: 0;
+    text-align: center;
+    margin-bottom: 0px;
+    position: fixed;
+    color: white;
+}
+
+table {
+    align-content: left;
+    text-align: left;
+    place-self: center;
+}
+
+table tr {
+    border: grey;
+    border-style: solid;
+}
+
+table th {
+    border: grey;
+    border-style: solid;
+}
+
+/*resultaten hoofdpagina*/
+.collapsible {
+    background-color: #777;
+    color: white;
+    cursor: pointer;
+    padding: 18px;
+    width: 100%;
+    text-align: left;
+    outline: none;
+    font-size: 15px;
+}
+
+.active, .collapsible:hover {
+    background-color: #555;
+}
+
+/*extra informatie collapse*/
+.content {
+    list-style: none;
+    padding: 0px;
+    max-height: 0;
+    transition: max-height 0.2s ease-out;
+    background-color: white;
+    float: left;
+    width: 100%;
+    margin-left: 25%;
+
+}
+
+/*aparte styling voor sequentie en ASCII score*/
+.sequence {
+    font-size: 14px;
+    font-family: 'Ubuntu', 'Lucida Grande',
+    'Lucida Sans Unicode', 'Geneva', 'Verdana', sans-serif;
+    border: 1px solid black;
+    float: left;
+    margin: 5px;
+    padding: 5px;
+    display: table-cell;
+    width: 20%;
+    word-wrap: break-word;
+}
+
+p.bordering {
+    border: 1px solid black;
+    width: 41%;
+    padding: 5px;
+    margin: 5px;
+
+    /*plaatsings classes*/
+}
+
+p.padding {
+    margin-left: 10%;
+}
+
+.row {
+    width: 100%;
+    height: 40%;
+}
+
+.row-10 {
+    width: 100%;
+    margin-left: 10%;
+    margin-right: 10%;
+
+}
+
+.column-33 {
+    width: 33%;
+    float: left;
+}
+
+.column-50 {
+    width: 50%;
+    float: left;
+}
+
+.column-25 {
+    width: 25%;
+    float: center;
+}
+
+/*hr en br uit andere elementen wegdrukken*/
+hr {
+    clear: both;
+}
+
+br {
+    clear: both;
+}
+
+/*aparte styling voor sequentie en ASCII score*/
+.sequence2 {
+    font-size: 14px;
+    font-family: 'Ubuntu', 'Lucida Grande',
+    'Lucida Sans Unicode', 'Geneva', 'Verdana', sans-serif;
+    border: 1px solid black;
+    float: left;
+    margin: 5px;
+    padding: 5px;
+    display: table-cell;
+    width: 41%;
+    word-wrap: break-word;
+}
+.sequence3 {
+    font-size: 14px;
+    font-family: 'Ubuntu', 'Lucida Grande',
+    'Lucida Sans Unicode', 'Geneva', 'Verdana', sans-serif;
+    border: 0px solid black;
+    float: left;
+    margin: 5px;
+    padding: 5px;
+    display: table-cell;
+    width: 80%;
+    word-wrap: break-word;
+}
