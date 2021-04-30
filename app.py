@@ -1,45 +1,53 @@
-"""
-Margo Raijmakers
-18-04-2021
-"""
-
 from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
+@app.route('/')
+@app.route('/home.html', methods=["POST", "GET"])
+def get_input():
+    if request.method == 'POST':
 
-@app.route('/', methods=["POST", "GET"])
-def get_filters():
-    """
-    todo docstrings
-    """
-    if request.method == "POST":
-        or_search = request.form.get("or_search", "")
-        and_search = request.form.get("and_search", "")
-        not_search = request.form.get("not_search", "")
-        gene_search = request.form.get("gene_search", "")
-        date_search = request.form.get("date_search", "")
-        genepanel_search = request.form.get("or_search", "")
-        print(or_search)
-        print(and_search)
-        print(not_search)
-        print(gene_search)
-        print(date_search)
-        print(genepanel_search)
-        return render_template("WebApp.html", or_search=or_search,
-                               and_search=and_search,
-                               not_search=not_search,
-                               gene_search=gene_search,
-                               date_search=date_search,
-                               genepanel_search=genepanel_search)
+        or_filter = request.form.get("or_filter", "")
+        or_list = request.form.getlist('or_list')
+        or_list.insert(0, or_filter)
+
+        and_filter = request.form.get("and_filter", "")
+        not_filter = request.form.get("not_filter", "")
+        gene_filter = request.form.get("gene_filter", "")
+        date_filter = request.form.get("date_filter", "")
+        genepanel_filter = request.form.get("genepanel_filter", "")
+
+        print(or_list)
+        print(and_filter)
+        print(not_filter)
+        print(gene_filter)
+        print(date_filter)
+        print(genepanel_filter)
+
+        return render_template("home.html",
+                               or_filter=or_filter,
+                               or_list=or_list,
+                               and_filter=and_filter,
+                               not_filter=not_filter,
+                               gene_filter=gene_filter,
+                               date_filter=date_filter,
+                               genepanel_filter=genepanel_filter)
     else:
-        return render_template("WebApp.html", or_search="",
-                               and_search="",
-                               not_search="",
-                               gene_search="",
-                               date_search="",
-                               genepanel_search="")
+        return render_template("home.html",
+                               or_filter="",
+                               or_list="",
+                               and_filter="",
+                               not_filter="",
+                               gene_filter="",
+                               date_filter="",
+                               genepanel_filter="")
+
+
+@app.route('/info.html', methods=["POST", "GET"])
+def info():
+    return render_template('info.html')
 
 
 if __name__ == '__main__':
     app.run()
+
