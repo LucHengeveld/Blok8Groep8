@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link href="../static/style.css" rel="stylesheet" type="text/css">
+        <TITLE>Home</TITLE>
+        <ul>
+            <li><a class="active" href="home.html">Home</a></li>
+            <li><a href="info.html">Info</a></li>
+        </ul>
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    </head>
+
+    <body>
+        <script>
+            $(document).ready(function() {
+                $("#Add").on("click", function() {
+                    $("#textboxDiv").append("<div><br><input type='text' size=50 name='or_list'/><br></div>");
+                });
+                $("#Remove").on("click", function() {
+                    $("#textboxDiv").children().last().remove();
+                });
+            });
+        </script>
+
+        <div style="width:85%;padding:20px;">
+            <h2>Enter the disease characteristics in the textboxes below:</h2>
+            <label>Enter the OR keywords below.</label><br>
+            <button id="Add">Click to add more OR input fields</button>
+            <button id="Remove">Click to remove the last OR input field</button><br><br>
+
+            <form action="{{ url_for("get_input") }}" method="POST">
+                <label>
+                    <input type="text" name="or_filter" size="50"/>
+                </label>
+                <div id="textboxDiv"></div>
+                <br>
+                <label>
+                    Enter the AND keywords below:<br>
+                    <input type="text" name="and_filter" size="50"/>
+                </label><br><br>
+
+                <label>
+                    Enter the NOT keywords below:<br>
+                    <input type="text" name="not_filter" size="50"/>
+                </label><br><br>
+
+                <label>
+                    Enter the gene names below:<br>
+                    <input type="text" name="gene_filter" size="50"/>
+                </label><br><br>
+
+                <label>
+                    Enter a publication date below:<br>
+                    <input type="date" name="date_filter" />
+                </label><br><br>
+
+                <label>
+                    Enter the genepanel selection below:<br>
+                    <input type="text" name="genepanel_filter" size="50"/>
+                </label><br><br>
+
+                <button name="search" type="submit">Search for PubMed articles</button>
+            </form>
+        </div>
+    </body>
+</html>
