@@ -57,5 +57,26 @@ def main():
     gene_panels_list = get_column(gp_table, "GenePanel")
     gps_list, gps_set = make_genepanel_list_set(gene_panels_list)
 
+    # gene_panel_dict = {}
+    # for gene_panel in gps_set:
+    #     print(gene_panel)
+    #     for gene_panels in gps_list:
+    #         if gene_panel in gene_panels:
+    #             print(gene_panel)
+
+    pos_count = 0
+    for gene_panels in gps_list:
+        pos_count += 1
+        print(pos_count)
+        for gene_panel in gps_set:
+            print(gene_panel)
+            if gene_panel in gene_panels:
+                print(gene_panel)
+    # todo key:value = genpanel:[gen, gen, gen]
+    # todo posities in de gene_panels_list die genpanel bevatten -> zelfde positie van genes, die genen in een lijst
+    # todo dict(zip(keys, values))
 
 main()
+
+
+
