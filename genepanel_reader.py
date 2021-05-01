@@ -50,31 +50,45 @@ def make_genepanel_list_set(gene_panels_list):
     return gps_list, gps_set
 
 
+def make_gene_dict(genes, gps_list):
+    """This function makes a dictionary with the genes as keys and the
+    gene panels in a list as values.
+
+    :param genes: the list of all the genes
+    :param gps_list: the list of all the gene panels
+    :return: the dictionary with the genes as keys and the gene panels
+    as values
+    """
+    return dict(zip(genes, gps_list))
+
+
+def make_gene_panel_dict(gps_set, genes_dict):
+    """This function makes a dictionary with the gene panels as keys
+    and the genes as values.
+
+    :param gps_set: the set of all the gene panels
+    :param genes_dict: the dictionary with the genes as keys and the
+    gene panels as values
+    :return: the dictionary with the gene panels as keys and the genes
+    as values
+    """
+    gene_panel_dict = {}
+    for gene_panel in gps_set:
+        gene_panel_dict[gene_panel] = [k for k, v in genes_dict.items() if
+                                       gene_panel in v]
+    return gene_panel_dict
+
+
 def main():
     file_name = "GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
     gp_table = excel_reader(file_name)
     genes = get_column(gp_table, "GenePanels_Symbol")
     gene_panels_list = get_column(gp_table, "GenePanel")
     gps_list, gps_set = make_genepanel_list_set(gene_panels_list)
+    genes_dict = make_gene_dict(genes, gps_list)
+    gene_panel_dict = make_gene_panel_dict(gps_set, genes_dict)
+    print(gene_panel_dict)
 
-    # gene_panel_dict = {}
-    # for gene_panel in gps_set:
-    #     print(gene_panel)
-    #     for gene_panels in gps_list:
-    #         if gene_panel in gene_panels:
-    #             print(gene_panel)
-
-    pos_count = 0
-    for gene_panels in gps_list:
-        pos_count += 1
-        print(pos_count)
-        for gene_panel in gps_set:
-            print(gene_panel)
-            if gene_panel in gene_panels:
-                print(gene_panel)
-    # todo key:value = genpanel:[gen, gen, gen]
-    # todo posities in de gene_panels_list die genpanel bevatten -> zelfde positie van genes, die genen in een lijst
-    # todo dict(zip(keys, values))
 
 main()
 
