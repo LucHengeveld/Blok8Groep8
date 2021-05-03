@@ -1,56 +1,19 @@
-from flask import Flask, render_template, request
+def var():
+    """
+    Handmatig de variabelen voor de query beheren. Deze functie kan
+    later weg, want deze functie wordt gebruikt om te kijken hoe de
+    query in elkaar komt te zitten.
+    De or_list is verplicht!
+    """
+    or_list = ['ABC transporters, transporter, transport', 'disease, mutations, mutation, liver disease',
+               'Lipids, cholesterol, bile salts, canalicular '
+               'membrane, phosphatidylcholine, PC ']
+    and_filter = "ABCB4, ABCB4 deficiency"
+    not_filter = "human, monkey"
+    gene_filter = "celline, gene"
 
-app = Flask(__name__)
+    return or_list, and_filter, not_filter, gene_filter
 
-
-@app.route('/')
-@app.route('/home.html', methods=["POST", "GET"])
-def get_input():
-    if request.method == 'POST':
-
-        email = request.form.get("email", "")
-
-        or_filter = request.form.get("or_filter", "")
-        or_list = request.form.getlist('or_list')
-        or_list.insert(0, or_filter)
-
-        and_filter = request.form.get("and_filter", "")
-        not_filter = request.form.get("not_filter", "")
-        gene_filter = request.form.get("gene_filter", "")
-        date_filter = request.form.get("date_filter", "")
-        genepanel_filter = request.form.get("genepanel_filter", "")
-
-        print(or_list)
-        print(and_filter)
-        print(not_filter)
-        print(gene_filter)
-        print(date_filter)
-        print(genepanel_filter)
-        print(email)
-
-        data = retrieve_data(or_list, and_filter, not_filter, gene_filter)
-
-        return render_template("home.html",
-                               email=email,
-                               or_filter=or_filter,
-                               or_list=or_list,
-                               and_filter=and_filter,
-                               not_filter=not_filter,
-                               gene_filter=gene_filter,
-                               date_filter=date_filter,
-                               genepanel_filter=genepanel_filter,
-                               retrieve_data=data)
-    else:
-        return render_template("home.html",
-                               email="",
-                               or_filter="",
-                               or_list="",
-                               and_filter="",
-                               not_filter="",
-                               gene_filter="",
-                               date_filter="",
-                               genepanel_filter="",
-                               retrieve_data="")
 
 def retrieve_data(or_list, and_filter, not_filter, gene_filter):
     """
@@ -70,8 +33,8 @@ def retrieve_data(or_list, and_filter, not_filter, gene_filter):
                 or_list = list.replace(",", " OR")
                 if ' OR ' in or_list:  # sommige OR's worden
                     # vervangen door AND
-                    or_list = or_list.replace("' OR '", ") AND (")
-                print("OR: ", or_list)
+                    or_data = or_list.replace("' OR '", ") AND (")
+                print("OR: ", or_data)
         else:
             or_list = str(or_list)
             print(or_list)
@@ -106,9 +69,7 @@ def retrieve_data(or_list, and_filter, not_filter, gene_filter):
             gene_filter = str(gene_filter)
             print(gene_filter)
 
-        making_query(or_list, and_filter, not_filter, gene_filter)
-        return or_list, and_filter, not_filter, gene_filter
-
+        return or_data, and_filter, not_filter, gene_filter
     except ValueError:
         print("Error: something went wrong. Please check the info "
               "page.")
@@ -170,12 +131,12 @@ def making_query(or_list, and_filter, not_filter, gene_filter):
         print("Error: something went wrong. Please check the info "
               "page.")
 
-    #TODO: de tiab's moeten nog toegevoegd worden
 
-@app.route('/info.html', methods=["POST", "GET"])
-def info():
-    return render_template('info.html')
+def main():
+    or_list, and_filter, not_filter, gene_filter = var()
+    or_list, and_filter, not_filter, gene_filter = retrieve_data(
+        or_list, and_filter, not_filter, gene_filter)
+    making_query(or_list, and_filter, not_filter, gene_filter)
 
 
-if __name__ == '__main__':
-    app.run()
+main()
