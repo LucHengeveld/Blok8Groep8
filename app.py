@@ -163,7 +163,7 @@ def making_query(or_list, and_filter, not_filter, gene_filter):
             pass
 
         query = str(query).replace("', '( ", " ").replace("['", "(").replace("']", ")")
-        print("Query: ", query)
+        print("Query lijst: ", query)
         return query
 
     except ValueError:
