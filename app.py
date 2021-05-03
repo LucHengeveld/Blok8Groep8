@@ -71,7 +71,7 @@ def retrieve_data(or_list, and_filter, not_filter, gene_filter):
                 if ' OR ' in or_list:  # sommige OR's worden
                     # vervangen door AND
                     or_list = or_list.replace("' OR '", ") AND (")
-                print("OR: ", or_list)
+                print("OR search: ", or_list)
         else:
             or_list = str(or_list)
             print(or_list)
@@ -81,7 +81,7 @@ def retrieve_data(or_list, and_filter, not_filter, gene_filter):
             and_filter = str(and_filter)
             # De komma's worden vervangen door OR
             and_filter = and_filter.replace(",", " OR")
-            print("AND: ", and_filter)
+            print("AND search: ", and_filter)
         else:
             and_filter = str(and_filter)
             print(and_filter)
@@ -91,7 +91,7 @@ def retrieve_data(or_list, and_filter, not_filter, gene_filter):
             not_filter = str(not_filter)
             # De komma's worden vervangen door NOT
             not_filter = not_filter.replace(",", " NOT")
-            print("NOT: ", not_filter)
+            print("NOT search: ", not_filter)
         else:
             not_filter = str(not_filter)
             print(not_filter)
@@ -101,7 +101,7 @@ def retrieve_data(or_list, and_filter, not_filter, gene_filter):
             gene_filter = str(gene_filter)
             # De komma's worden vervangen door OR
             gene_filter = gene_filter.replace(",", " OR")
-            print("Gene filter: ", gene_filter)
+            print("Gene filter search: ", gene_filter)
         else:
             gene_filter = str(gene_filter)
             print(gene_filter)
@@ -163,7 +163,7 @@ def making_query(or_list, and_filter, not_filter, gene_filter):
             pass
 
         query = str(query).replace("', '( ", " ").replace("['", "(").replace("']", ")")
-        print("Query lijst: ", query)
+        print("Query: ", query)
         return query
 
     except ValueError:
