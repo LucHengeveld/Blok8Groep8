@@ -8,6 +8,8 @@ app = Flask(__name__)
 def get_input():
     if request.method == 'POST':
 
+        email = request.form.get("email", "")
+
         or_filter = request.form.get("or_filter", "")
         or_list = request.form.getlist('or_list')
         or_list.insert(0, or_filter)
@@ -24,8 +26,10 @@ def get_input():
         print(gene_filter)
         print(date_filter)
         print(genepanel_filter)
+        print(email)
 
         return render_template("home.html",
+                               email=email,
                                or_filter=or_filter,
                                or_list=or_list,
                                and_filter=and_filter,
@@ -35,6 +39,7 @@ def get_input():
                                genepanel_filter=genepanel_filter)
     else:
         return render_template("home.html",
+                               email="",
                                or_filter="",
                                or_list="",
                                and_filter="",
