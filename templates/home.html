@@ -55,6 +55,11 @@
                     <input type="date" name="date_filter" />
                 </label><br><br>
 
+                 <label>
+                    Enter the genepanel Excel file below:<br>
+                    <input type="file" name="genepanel_file" accept=".xlsx" size="50"/>
+                </label><br><br>
+
                 <label>
                     Enter the genepanel selection below:<br>
                     <input type="text" name="genepanel_filter" size="50"/>
@@ -84,19 +89,20 @@
                         "Ziekte kenmerken (niet): {{ not_filter }} <br>" +
                         "Gennaam: {{ gene_filter }} <br>" +
                         "Publicatie datum: {{ date_filter }} <br>" +
+                        "Genpanel file: {{ genepanel_file }} <br>" +
                         "Genpanel selectie: {{ genepanel_filter }} <br>" +
                         "<hr>" +
                         "<table id='table' style='width:100%'>" +
                         "<tr>" +
                         "<th>Gennaam</th>" +
-                        "<th>Titel artikel</th>" +
+                        "<th>Artikel ID</th>" +
                         "<th>Publicatiedatum</th>" +
                         "<th>Genpanel</th>" +
                         "</tr>" +
                         <!-- todo: loop met resultaten -->
                         "<tr>" +
                         "<td>AARS1</td>" +
-                        "<td>Naam+hyperlink</td>" +
+                        "<td>ID+hyperlink</td>" +
                         "<td>10-04-2020</td>" +
                         "<td>Neuropathies</td>" +
                         "</tr>" +

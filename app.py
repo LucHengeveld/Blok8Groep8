@@ -1,21 +1,31 @@
 from flask import Flask, render_template, request
+import pandas as pd
+from Bio import Entrez, Medline
+import requests
+from datetime import datetime
 
 app = Flask(__name__)
 
 
 @app.route('/')
 @app.route('/home.html', methods=["POST", "GET"])
+# 1. Filters ophalen
+# 2. genpanels
+# 3. retrieve data / making query
+# 4. test.py
+# 5. resultaten weergeven
 def get_input():
     if request.method == 'POST':
 
         email = request.form.get("email", "")
 
         or_filter = request.form.get("or_filter", "")
-        or_list = request.form.getlist('or_list')
+        or_list = request.form.getlist('or_list', "")
         or_list.insert(0, or_filter)
 
         and_filter = request.form.get("and_filter", "")
         not_filter = request.form.get("not_filter", "")
+        genepanel_file = request.form.get("genepanel_file", "")
         gene_filter = request.form.get("gene_filter", "")
         date_filter = request.form.get("date_filter", "")
         genepanel_filter = request.form.get("genepanel_filter", "")
@@ -23,10 +33,13 @@ def get_input():
         print(or_list)
         print(and_filter)
         print(not_filter)
+        print(genepanel_file)
         print(gene_filter)
         print(date_filter)
         print(genepanel_filter)
         print(email)
+
+        Entrez.email = email
 
         data = retrieve_data(or_list, and_filter, not_filter, gene_filter)
 
@@ -38,6 +51,7 @@ def get_input():
                                not_filter=not_filter,
                                gene_filter=gene_filter,
                                date_filter=date_filter,
+                               genepanel_file=genepanel_file,
                                genepanel_filter=genepanel_filter,
                                retrieve_data=data)
     else:
@@ -49,8 +63,10 @@ def get_input():
                                not_filter="",
                                gene_filter="",
                                date_filter="",
+                               genepanel_file="",
                                genepanel_filter="",
                                retrieve_data="")
+
 
 def retrieve_data(or_list, and_filter, not_filter, gene_filter):
     """
@@ -136,7 +152,8 @@ def making_query(or_list, and_filter, not_filter, gene_filter):
             # de lijst toegevoegd
             query_and = " AND (", and_filter
             query_and = str(query_and).replace(" ', '",
-                " ").replace("'", "").replace(", ","")
+                                               " ").replace("'", "").replace(
+                ", ", "")
             query.append(query_and)
             # print("Query and: ", query_and)
         else:
@@ -146,7 +163,8 @@ def making_query(or_list, and_filter, not_filter, gene_filter):
             # aan de lijst toegevoegd
             query_not = " AND (NOT", not_filter
             query_not = str(query_not).replace(" ', '",
-                "").replace("'", "").replace(",", "")
+                                               "").replace("'", "").replace(
+                ",", "")
             query.append(query_not)
             # print("Query not: ", query_not)
         else:
@@ -156,13 +174,14 @@ def making_query(or_list, and_filter, not_filter, gene_filter):
             # gene_filter wordt aan de lijst toegevoegd
             query_gene = " AND ", gene_filter
             query_gene = str(query_gene).replace("'",
-                "").replace(",", "(")
+                                                 "").replace(",", "(")
             query.append(query_gene)
             # print("Query gene: ", query_gene)
         else:
             pass
 
-        query = str(query).replace("', '( ", " ").replace("['", "(").replace("']", ")")
+        query = str(query).replace("', '( ", " ").replace("['", "(").replace(
+            "']", ")")
         print("Query lijst: ", query)
         return query
 
@@ -170,7 +189,8 @@ def making_query(or_list, and_filter, not_filter, gene_filter):
         print("Error: something went wrong. Please check the info "
               "page.")
 
-    #TODO: de tiab's moeten nog toegevoegd worden
+    # TODO: de tiab's moeten nog toegevoegd worden
+
 
 @app.route('/info.html', methods=["POST", "GET"])
 def info():
