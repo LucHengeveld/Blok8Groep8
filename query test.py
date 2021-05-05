@@ -6,7 +6,7 @@ def var():
     De or_list is verplicht!
     """
     or_list = ['ABC transporters, transporter, transport', 'disease, '
-                'mutations, mutation, liver disease', 'Lipids, '
+                'mutations, mutation, liver disease', 'lipids, '
                'cholesterol, bile salts, canalicular membrane, '
                'phosphatidylcholine, PC ']
     and_filter = "ABCB4, ABCB4 deficiency"
@@ -99,7 +99,7 @@ def making_query(or_list, and_filter, not_filter, gene_filter):
     """
 
     try:
-        query = []  # Creating empy list
+        query = []  # Creating empty list
 
         if or_list != "":  # Query of the or_list added to empty
             # query list
