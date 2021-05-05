@@ -5,13 +5,13 @@ def var():
     query in elkaar komt te zitten.
     De or_list is verplicht!
     """
-    or_list = ['ABC transporters, transporter, transport', 'disease, '
-                'mutations, mutation, liver disease', 'lipids, '
-               'cholesterol, bile salts, canalicular membrane, '
-               'phosphatidylcholine, PC ']
-    and_filter = "ABCB4, ABCB4 deficiency"
+    or_list = ['ABC transporter, transporter, transport', 'disease, '
+                'liver disease, mutations', 'lipids, '
+                'cholesterol, bile salts, bile, canalicular membrane, '
+                'phosphatidylcholine, PC']
+    and_filter = "ABCB4, ABCB4 deficiency, MDR3"
     not_filter = "human, monkey"
-    gene_filter = "celline, gene"
+    gene_filter = "gene, celline"
 
     return or_list, and_filter, not_filter, gene_filter
 
@@ -34,7 +34,7 @@ def retrieve_data(or_list, and_filter, not_filter, gene_filter):
         if or_list is not None:
             or_list = str(or_list)
             if "['" in or_list:  # [] gets replaced by ()
-                list_or = or_list.replace("['", "(").replace(" ']",
+                list_or = or_list.replace("['", "(").replace("']",
                                                              " [tiab])")
                 # print("List: ", list_or)
             if "" not in list_or:  # Checks if list is empty
@@ -43,40 +43,36 @@ def retrieve_data(or_list, and_filter, not_filter, gene_filter):
             if ' OR ' in or_list:  # some OR's gets replaced by AND
                 or_list = or_list.replace("' [tiab] OR '", " [tiab]) "
                                                            "AND (")
-            print("OR search: ", or_list)
+            # print("OR search: ", or_list)
         else:
             or_list = str(or_list)
-            print(or_list)
 
         # The and_filter list will be edited here
         if and_filter is not None:
             and_filter = str(and_filter)
             # Comma's get replaced by OR
             and_filter = and_filter.replace(",", " [tiab] OR")
-            print("AND search: ", and_filter)
+            # print("AND search: ", and_filter)
         else:
             and_filter = str(and_filter)
-            print(and_filter)
 
         # The not_filter list will be edited here
         if not_filter is not None:
             not_filter = str(not_filter)
             # Comma's get replaced by NOT
             not_filter = not_filter.replace(",", " [tiab] NOT")
-            print("NOT search: ", not_filter)
+            # print("NOT search: ", not_filter)
         else:
             not_filter = str(not_filter)
-            print(not_filter)
 
         # # The gene_filter list will be edited here
         if gene_filter is not None:
             gene_filter = str(gene_filter)
             # Comma's get replaced by OR
             gene_filter = gene_filter.replace(",", " [tiab] OR")
-            print("Gene filter search: ", gene_filter)
+            # print("Gene filter search: ", gene_filter)
         else:
             gene_filter = str(gene_filter)
-            print(gene_filter)
 
         making_query(or_list, and_filter, not_filter, gene_filter)
         return or_list, and_filter, not_filter, gene_filter
@@ -141,7 +137,6 @@ def making_query(or_list, and_filter, not_filter, gene_filter):
 
         query = str(query).replace("', '( ", " ").replace("['", "(") \
             .replace("']", ")")
-        print("Query: ", query)
         return query
 
     except ValueError:
@@ -153,7 +148,8 @@ def main():
     or_list, and_filter, not_filter, gene_filter = var()
     or_list, and_filter, not_filter, gene_filter = retrieve_data(
         or_list, and_filter, not_filter, gene_filter)
-    making_query(or_list, and_filter, not_filter, gene_filter)
+    query = making_query(or_list, and_filter, not_filter, gene_filter)
+    print("Query: ", query)
 
 
 main()
