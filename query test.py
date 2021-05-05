@@ -5,9 +5,10 @@ def var():
     query in elkaar komt te zitten.
     De or_list is verplicht!
     """
-    or_list = ['ABC transporters, transporter, transport', 'disease, mutations, mutation, liver disease',
-               'Lipids, cholesterol, bile salts, canalicular '
-               'membrane, phosphatidylcholine, PC ']
+    or_list = ['ABC transporters, transporter, transport', 'disease, '
+                'mutations, mutation, liver disease', 'Lipids, '
+               'cholesterol, bile salts, canalicular membrane, '
+               'phosphatidylcholine, PC ']
     and_filter = "ABCB4, ABCB4 deficiency"
     not_filter = "human, monkey"
     gene_filter = "celline, gene"
@@ -16,115 +17,131 @@ def var():
 
 
 def retrieve_data(or_list, and_filter, not_filter, gene_filter):
+    """ This function will prepare the different parts of the query.
+
+    :param or_list: The input from get_input.
+    :param and_filter: The input from get_input.
+    :param not_filter: The input from get_input.
+    :param gene_filter: The input from get_input.
+    :return or_list: List with OR search terms.
+    :return and_fitler: List with AND search terms.
+    :return not_filter: List with NOT search terms.
+    :return gene_filter: List with gene filter search terms.
     """
-    In deze functie worden de onderdelen voor de query klaargemaakt.
-    Als eerste wordt er gecontroleerd of de lijsten leeg zijn of niet.
-    Als ze niet leeg zijn, dan worden komma's en de haakjes
-    gereplaced met de juiste onderdelen (bv. OR en AND)
-    """
+
     try:
-        # De or_list wordt hier bewerkt
+        # The or_list will be edited here
         if or_list is not None:
             or_list = str(or_list)
-            if "['" in or_list:  # [] wordt vervangen door ()
-                list = or_list.replace("['", "(").replace("']", ")")
-                # print("List: ", list)
-            if "" in list:  # komma wordt vervangen door OR
-                or_list = list.replace(",", " OR")
-                if ' OR ' in or_list:  # sommige OR's worden
-                    # vervangen door AND
-                    or_data = or_list.replace("' OR '", ") AND (")
-                print("OR: ", or_data)
+            if "['" in or_list:  # [] gets replaced by ()
+                list_or = or_list.replace("['", "(").replace(" ']",
+                                                             " [tiab])")
+                # print("List: ", list_or)
+            if "" not in list_or:  # Checks if list is empty
+                return
+            or_list = list_or.replace(",", " [tiab] OR")
+            if ' OR ' in or_list:  # some OR's gets replaced by AND
+                or_list = or_list.replace("' [tiab] OR '", " [tiab]) "
+                                                           "AND (")
+            print("OR search: ", or_list)
         else:
             or_list = str(or_list)
             print(or_list)
 
-        # De and_filter lijst wordt hier bewerkt
+        # The and_filter list will be edited here
         if and_filter is not None:
             and_filter = str(and_filter)
-            # De komma's worden vervangen door OR
-            and_filter = and_filter.replace(",", " OR")
-            print("AND: ", and_filter)
+            # Comma's get replaced by OR
+            and_filter = and_filter.replace(",", " [tiab] OR")
+            print("AND search: ", and_filter)
         else:
             and_filter = str(and_filter)
             print(and_filter)
 
-        # De not_filter lijst wordt hier bewerkt
+        # The not_filter list will be edited here
         if not_filter is not None:
             not_filter = str(not_filter)
-            # De komma's worden vervangen door NOT
-            not_filter = not_filter.replace(",", " NOT")
-            print("NOT: ", not_filter)
+            # Comma's get replaced by NOT
+            not_filter = not_filter.replace(",", " [tiab] NOT")
+            print("NOT search: ", not_filter)
         else:
             not_filter = str(not_filter)
             print(not_filter)
 
-        # De gene_filter lijst wordt hier bewerkt
+        # # The gene_filter list will be edited here
         if gene_filter is not None:
             gene_filter = str(gene_filter)
-            # De komma's worden vervangen door OR
-            gene_filter = gene_filter.replace(",", " OR")
-            print("Gene filter: ", gene_filter)
+            # Comma's get replaced by OR
+            gene_filter = gene_filter.replace(",", " [tiab] OR")
+            print("Gene filter search: ", gene_filter)
         else:
             gene_filter = str(gene_filter)
             print(gene_filter)
 
-        return or_data, and_filter, not_filter, gene_filter
+        making_query(or_list, and_filter, not_filter, gene_filter)
+        return or_list, and_filter, not_filter, gene_filter
+
     except ValueError:
         print("Error: something went wrong. Please check the info "
               "page.")
 
 
 def making_query(or_list, and_filter, not_filter, gene_filter):
-    """
-    In deze functie wordt de query in elkaar gezet. Hierbij wordt
-    gekeken naar welke van de 4 velden zijn ingevuld en vervolgens
-    wordt het bijbehorende stuk aan de lege lijst query toegevoegd.
-    de or_list is verplicht.
-    """
-    try:
-        query = []  # lege lijst wordt aangemaakt
+    """ This function combine's the 4 filters into a query. This
+    query can be used for searching the PubMed.
 
-        if or_list != "":  # query voor de or_list wordt aan de
-            # lege lijst toegevoegd
+    :param or_list: List with OR search terms.
+    :param and_filter: List with AND search terms.
+    :param not_filter: List with NOT search terms.
+    :param gene_filter: List with gene filter search terms.
+    :return query: Combining the or_list, and_filter, not_filter and
+    gene_filter.
+    """
+
+    try:
+        query = []  # Creating empy list
+
+        if or_list != "":  # Query of the or_list added to empty
+            # query list
             query_or = or_list
             query.append(query_or)
             # print("Query or: ", query_or)
         else:
             pass
 
-        if and_filter != "":  # query voor de and_filter wordt aan
-            # de lijst toegevoegd
+        if and_filter != "":  # Query of the and_filter added to empty
+            # query list
             query_and = " AND (", and_filter
-            query_and = str(query_and).replace(" ', '",
-                " ").replace("'", "").replace(", ","")
+            query_and = str(query_and).replace(" ', '", " ").replace(
+                "'", "").replace(", ", "").replace(")", " [tiab])")
             query.append(query_and)
             # print("Query and: ", query_and)
         else:
             pass
 
-        if not_filter != "":  # query voor de not_filter wordt
-            # aan de lijst toegevoegd
+        if not_filter != "":  # Query of the not_filter added to empty
+            # query list
             query_not = " AND (NOT", not_filter
-            query_not = str(query_not).replace(" ', '",
-                "").replace("'", "").replace(",", "")
+            query_not = str(query_not).replace(" ', '", "").replace(
+                "'", "").replace(",", "").replace(")", " [tiab])")
             query.append(query_not)
             # print("Query not: ", query_not)
         else:
             pass
 
-        if gene_filter != "":  # query voor de
-            # gene_filter wordt aan de lijst toegevoegd
+        if gene_filter != "":  # Query of the gene_filter added to
+            # empty query list
             query_gene = " AND ", gene_filter
-            query_gene = str(query_gene).replace("'",
-                "").replace(",", "(")
+            query_gene = str(query_gene).replace("'", "").replace(", "
+                        "", "(").replace(")", " [tiab])")
             query.append(query_gene)
             # print("Query gene: ", query_gene)
         else:
             pass
 
-        query = str(query).replace("', '( ", " ").replace("['", "(").replace("']", ")")
-        print("Query lijst: ", query)
+        query = str(query).replace("', '( ", " ").replace("['", "(") \
+            .replace("']", ")")
+        print("Query: ", query)
         return query
 
     except ValueError:
