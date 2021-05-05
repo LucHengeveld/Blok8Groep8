@@ -151,9 +151,8 @@ def making_query(or_list, and_filter, not_filter, gene_filter):
         if and_filter != "":  # query voor de and_filter wordt aan
             # de lijst toegevoegd
             query_and = " AND (", and_filter
-            query_and = str(query_and).replace(" ', '",
-                                               " ").replace("'", "").replace(
-                ", ", "")
+            query_and = str(query_and).replace(" ', '", " ").replace("'", "").\
+                replace(", ", "")
             query.append(query_and)
             # print("Query and: ", query_and)
         else:
@@ -162,9 +161,8 @@ def making_query(or_list, and_filter, not_filter, gene_filter):
         if not_filter != "":  # query voor de not_filter wordt
             # aan de lijst toegevoegd
             query_not = " AND (NOT", not_filter
-            query_not = str(query_not).replace(" ', '",
-                                               "").replace("'", "").replace(
-                ",", "")
+            query_not = str(query_not).replace(" ', '", "").replace("'", "").\
+                replace(",", "")
             query.append(query_not)
             # print("Query not: ", query_not)
         else:
@@ -173,15 +171,14 @@ def making_query(or_list, and_filter, not_filter, gene_filter):
         if gene_filter != "":  # query voor de
             # gene_filter wordt aan de lijst toegevoegd
             query_gene = " AND ", gene_filter
-            query_gene = str(query_gene).replace("'",
-                                                 "").replace(",", "(")
+            query_gene = str(query_gene).replace("'", "").replace(",", "(")
             query.append(query_gene)
             # print("Query gene: ", query_gene)
         else:
             pass
 
-        query = str(query).replace("', '( ", " ").replace("['", "(").replace(
-            "']", ")")
+        query = str(query).replace("', '( ", " ").replace("['", "(").\
+            replace("']", ")")
         print("Query lijst: ", query)
         return query
 
