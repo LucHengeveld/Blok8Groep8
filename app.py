@@ -182,8 +182,8 @@ def making_query(or_list, and_filter, not_filter, gene_filter):
         if gene_filter != "":  # Query of the gene_filter added to
             # empty query list
             query_gene = " AND ", gene_filter
-            query_gene = str(query_gene).replace("'", "").replace(", "
-                        "", "(").replace(")", " [tiab])")
+            query_gene = str(query_gene).replace("'", "").replace(", """, "(")\
+                .replace(")", " [tiab])")
             query.append(query_gene)
             # print("Query gene: ", query_gene)
         else:
