@@ -1,3 +1,4 @@
+import re
 from flask import Flask, render_template, request
 import pandas as pd
 from Bio import Entrez, Medline
@@ -41,7 +42,21 @@ def get_input():
 
         Entrez.email = email
 
-        data = retrieve_data(or_list, and_filter, not_filter, gene_filter)
+        file_name = "GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
+        gp_table = excel_reader(file_name)
+        genes = get_column(gp_table, "GenePanels_Symbol")
+        gene_panels_list = get_column(gp_table, "GenePanel")
+        gps_list, gps_set = make_genepanel_list_set(gene_panels_list)
+        genes_dict = make_gene_dict(genes, gps_list)
+        gene_panel_dict = make_gene_panel_dict(gps_set, genes_dict)
+        or_list, and_filter, not_filter, gene_filter = \
+            retrieve_data(or_list, and_filter, not_filter, gene_filter)
+        query = making_query(or_list, and_filter, not_filter, gene_filter)
+        id_list = get_pubmed_ids(query, date_filter)
+        pubtator_link = get_pubtator_link(id_list)
+        results = read_pubtator_file(pubtator_link)
+        results = pubmed_hyperlink(results)
+        results = publication_date(results)
 
         return render_template("home.html",
                                email=email,
@@ -52,8 +67,7 @@ def get_input():
                                gene_filter=gene_filter,
                                date_filter=date_filter,
                                genepanel_file=genepanel_file,
-                               genepanel_filter=genepanel_filter,
-                               retrieve_data=data)
+                               genepanel_filter=genepanel_filter)
     else:
         return render_template("home.html",
                                email="",
@@ -64,8 +78,81 @@ def get_input():
                                gene_filter="",
                                date_filter="",
                                genepanel_file="",
-                               genepanel_filter="",
-                               retrieve_data="")
+                               genepanel_filter="")
+
+
+def excel_reader(file_name):
+    """This function converts the table in the excel file to a table in
+    Python.
+
+    :param file_name: the name of the file
+    :return: the gene panels table
+    """
+    return pd.read_excel(file_name)
+
+
+def get_column(gp_table, column_name):
+    """This function gets the values from a column from the gene panels
+    table and returns it in a list.
+
+    :param gp_table: the gene panels table
+    :param column_name: the name of the column
+    :return: the values from a column in a list
+    """
+    return gp_table[column_name].tolist()
+
+
+def make_genepanel_list_set(gene_panels_list):
+    """This function makes a list and set of all the gene panels with
+    the (AD, etc.) removed.
+
+    :param gene_panels_list: the values from a column in a list
+    :return: the list and set of all the gene panels
+    """
+    gps_list = []
+    gps_set = []
+    for gene_panels in gene_panels_list:
+        gp_list = []
+        gp_list.clear()
+        # Remove the (AD, etc.)
+        for gene_panel in re.sub('[a-zA-Z]+;', ",", gene_panels).split(";"):
+            gp = re.sub('( (.*))', "", gene_panel)
+            gp_list.append(gp)
+            if gp in gps_set:
+                pass
+            else:
+                gps_set.append(gp)
+        gps_list.append(gp_list[:])
+    return gps_list, gps_set
+
+
+def make_gene_dict(genes, gps_list):
+    """This function makes a dictionary with the genes as keys and the
+    gene panels in a list as values.
+
+    :param genes: the list of all the genes
+    :param gps_list: the list of all the gene panels
+    :return: the dictionary with the genes as keys and the gene panels
+    as values
+    """
+    return dict(zip(genes, gps_list))
+
+
+def make_gene_panel_dict(gps_set, genes_dict):
+    """This function makes a dictionary with the gene panels as keys
+    and the genes as values.
+
+    :param gps_set: the set of all the gene panels
+    :param genes_dict: the dictionary with the genes as keys and the
+    gene panels as values
+    :return: the dictionary with the gene panels as keys and the genes
+    as values
+    """
+    gene_panel_dict = {}
+    for gene_panel in gps_set:
+        gene_panel_dict[gene_panel] = [k for k, v in genes_dict.items() if
+                                       gene_panel in v]
+    return gene_panel_dict
 
 
 def retrieve_data(or_list, and_filter, not_filter, gene_filter):
@@ -99,21 +186,19 @@ def retrieve_data(or_list, and_filter, not_filter, gene_filter):
         else:
             or_list = str(or_list)
 
-
         # The and_filter list will be edited here
         if and_filter is not None:
             and_filter = str(and_filter)
-            # Comma's get replaced by OR
+            # Commas get replaced by OR
             and_filter = and_filter.replace(",", " [tiab] OR")
             # print("AND search: ", and_filter)
         else:
             and_filter = str(and_filter)
 
-
         # The not_filter list will be edited here
         if not_filter is not None:
             not_filter = str(not_filter)
-            # Comma's get replaced by NOT
+            # Commas get replaced by NOT
             not_filter = not_filter.replace(",", " [tiab] NOT")
             # print("NOT search: ", not_filter)
         else:
@@ -122,13 +207,12 @@ def retrieve_data(or_list, and_filter, not_filter, gene_filter):
         # # The gene_filter list will be edited here
         if gene_filter is not None:
             gene_filter = str(gene_filter)
-            # Comma's get replaced by OR
+            # Commas get replaced by OR
             gene_filter = gene_filter.replace(",", " [tiab] OR")
             # print("Gene filter search: ", gene_filter)
         else:
             gene_filter = str(gene_filter)
 
-        making_query(or_list, and_filter, not_filter, gene_filter)
         return or_list, and_filter, not_filter, gene_filter
 
     except ValueError:
@@ -197,6 +281,176 @@ def making_query(or_list, and_filter, not_filter, gene_filter):
     except ValueError:
         print("Error: something went wrong. Please check the info "
               "page.")
+
+
+def get_pubmed_ids(query, date_filter):
+    """This function enters the query into an esearch and retrieves the
+    pubmed id's from the found articles.
+
+    :param query: Pubmed search query.
+    :param date_filter: Date input from the webapplication.
+    :return id_list: List with all found pubmed id's.
+    """
+    # Retrieves the input date from the webapplication.
+    date = date_filter.replace("-", "/")
+
+    # Retrieves today's date.
+    datetoday = str(datetime.date(datetime.now())).replace("-", "/")
+
+    # Enters the query, input date and today's date in an esearch.
+    handle = Entrez.esearch(db="pubmed", term=query, mindate=date,
+                            maxdate=datetoday)
+
+    # Reads the esearch and saves the ID's in id_list
+    record = Entrez.read(handle)
+    handle.close()
+    id_list = (record["IdList"])
+
+    return id_list
+
+
+def get_pubtator_link(id_list):
+    """This function uses the id's from the id_list to create a
+    pubtator link which filters the genes, mutations and diseases out
+    of the title and abstract.
+
+    :param id_list: List with all found pubmed id's.
+    :return pubtator_link: Pubtator link with the title, abstact, genes,
+    diseases and mutations of each article.
+    """
+    # Standard pubtator link format:
+    link = "https://www.ncbi.nlm.nih.gov/research/pubtator-api/publications" \
+           "/export/pubtator?pmids=idvalues&concepts=gene,mutation,disease"
+
+    # Creates a string with all the ID's. Separated by a comma.
+    id_string = ""
+    for i in range(len(id_list)):
+        id_string += id_list[i] + ","
+    id_string = id_string[:-1]
+
+    # Adds the ID values to the standard link.
+    pubtator_link = link.replace("idvalues", id_string)
+
+    return pubtator_link
+
+
+def read_pubtator_file(pubtator_link):
+    """This function reads the pubtator link as a text file and
+    retrieves the genes, diseases and mutations out of each article.
+
+    :param pubtator_link: Pubtator link with the title, abstact, genes,
+    diseases and mutations of each article.
+    :return results: Dictionary with as key the article ID and as value
+    a list with the structure [title, abstract, genelist, diseaselist,
+    mutationlist]
+    """
+    # Retrieves the pubtator link with the article ID's in text format
+    pubtator_text = requests.get(pubtator_link).text
+
+    # Splits the text in lines.
+    lines = pubtator_text.split("\n")
+
+    # Checks if the line is the title, the abstract, a gene, a disease,
+    # a mutation and adds the information to lists.
+    results = {}
+    genelist = []
+    diseaselist = []
+    mutationlist = []
+    for i in range(len(lines)):
+        if "|t|" in lines[i]:
+            article_id = lines[i].split("|t|")[0]
+            title = lines[i].split("|t|")[1]
+
+        elif "|a|" in lines[i]:
+            abstract = lines[i].split("|a|")[1]
+
+        elif lines[i] != "":
+            if lines[i] != "":
+                if "Gene" in lines[i]:
+                    gene = lines[i].split("\t")[3] + " " + \
+                           lines[i].split("\t")[-1]
+                    if gene not in genelist:
+                        genelist.append(gene)
+                elif "Disease" in lines[i]:
+                    disease = lines[i].split("\t")[3] + " " + \
+                              lines[i].split("\t")[-1]
+                    if disease not in diseaselist:
+                        diseaselist.append(disease)
+                elif "Mutation" in lines[i]:
+                    mutation = lines[i].split("\t")[3] + " " + \
+                               lines[i].split("\t")[-1]
+                    if mutation not in mutationlist:
+                        mutationlist.append(mutation)
+
+        # if the line is empty, which means its the end of an article,
+        # it will add the title, abstract, genelist, diseaselist and
+        # mutationlist to the results dictionary.
+        else:
+            if genelist:
+                results[article_id] = [title, abstract, genelist, diseaselist,
+                                       mutationlist]
+                genelist = []
+                diseaselist = []
+                mutationlist = []
+
+    return results
+
+
+def pubmed_hyperlink(results):
+    """This function creates the hyperlink to the pubmed article by
+    using the key's (article ID's) from the results dictionary. The
+    hyperlink will be added to the values of each key.
+
+    :param results: Dictionary with as key the article ID and as value
+    a list with the structure [title, abstract, genelist, diseaselist,
+    mutationlist]
+    :return results: Dictionary with as key the article ID and as value
+    a list with the structure [title, abstract, genelist, diseaselist,
+    mutationlist, hyperlink]
+    """
+    # Standard pubmed hyperlink
+    standard_hyperlink = "https://pubmed.ncbi.nlm.nih.gov/id/"
+
+    # Adds the article ID's to the standard pubmed hyperlink and appends
+    # this to the results dictionary.
+    for key in results:
+        hyperlink = standard_hyperlink.replace("id", key)
+        results[key].append(hyperlink)
+
+    return results
+
+
+def publication_date(results):
+    """This function retrieves the publication date of the article by
+    using the key's of results (article ID's) in efetch. The publication
+    date will be added to the values of each key.
+
+    :param results: Dictionary with as key the article ID and as value
+    a list with the structure [title, abstract, genelist, diseaselist,
+    mutationlist, hyperlink]
+    :return results: Dictionary with as key the article ID and as value
+    a list with the structure [title, abstract, genelist, diseaselist,
+    mutationlist, hyperlink, publication date]
+    """
+    # Adds all ID's to a string, separated by a comma.
+    id_string = ""
+    for key in results:
+        id_string += key + ","
+    id_string = id_string[:-1]
+
+    # Enters the id_string in efetch to retrieve the publication date
+    # of each article.
+    handle = Entrez.efetch(db="pubmed", id=id_string, retmode="text",
+                           rettype="medline")
+    records = Medline.parse(handle)
+    records = list(records)
+
+    # Adds the publication date of every article to the results
+    # dictionary
+    for record in records:
+        results[record["PMID"]].append(record["DP"])
+
+    return results
 
 
 @app.route('/info.html', methods=["POST", "GET"])
