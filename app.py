@@ -42,8 +42,7 @@ def get_input():
 
         Entrez.email = email
 
-        file_name = "GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
-        gp_table = excel_reader(file_name)
+        gp_table = excel_reader(genepanel_file)
         genes = get_column(gp_table, "GenePanels_Symbol")
         gene_panels_list = get_column(gp_table, "GenePanel")
         gps_list, gps_set = make_genepanel_list_set(gene_panels_list)
