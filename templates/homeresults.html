@@ -8,6 +8,20 @@
             <li><a href="info.html">Info</a></li>
         </ul>
             <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <style>
+            table, th, td {
+              border: 1px solid black;
+              border-collapse: collapse;
+            }
+
+            th, td {
+              padding: 5px;
+            }
+
+            th {
+              text-align: left;
+            }
+        </style>
     </head>
 
     <body>
@@ -119,14 +133,9 @@
                 {{ email }}
             </label>
 
-        <br><br><hr>
+            <br><br><hr>
 
             <h2>Search results:</h2>
-            <label>
-                Moet nog tabel met resultaten komen
-            </label><br>
-
-        <br>
             <form action="{{ url_for("save_results") }}" method="POST">
                 <label>
                     Enter the file extension you would like to use to save the file:<br>
@@ -134,8 +143,31 @@
                     <input type="radio" name="file_extension"> .txt (Text file) <br>
                     <input type="radio" name="file_extension"> .xlsx (Excel file) <br>
                 </label>
-                <button name="search" type="submit">Save results</button>
+                <button name="search" type="submit">Save results</button><br><br>
             </form>
+            <table style="width:100%">
+                <tr>
+                    <th>Gene name</th>
+                    <th>Gene ID</th>
+                    <th>Pubmed ID (click for hyperlink)</th>
+                    <th>Publication date</th>
+                    <th>Genepanel</th>
+                </tr>
+
+                {% for key in results %}
+                    {% for gene in results[key][2] %}
+                        <tr>
+                            <td>{{ gene.rsplit(" ", 1)[0] }}</td>
+                            <td>{{ gene.rsplit(" ", 1)[1] }}</td>
+                            <td><a href="{{ results[key][5] }}">{{ key }}</a></td>
+                            <td>{{ results[key][6] }}</td>
+                            <td>{{ results[key][7][results[key][2].index(gene)] }}</td>
+                        </tr>
+                        {% endfor %}
+                {% endfor %}
+            </table>
+
+            <br><br>
         </div>
     </body>
 </html>
