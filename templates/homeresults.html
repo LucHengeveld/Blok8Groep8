@@ -3,28 +3,15 @@
     <head>
         <link href="../static/style.css" rel="stylesheet" type="text/css">
         <TITLE>Home</TITLE>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    </head>
+
+    <body>
         <ul>
             <li><a class="active" href="home.html">Home</a></li>
             <li><a href="info.html">Info</a></li>
         </ul>
-            <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-        <style>
-            table, th, td {
-              border: 1px solid black;
-              border-collapse: collapse;
-            }
 
-            th, td {
-              padding: 5px;
-            }
-
-            th {
-              text-align: left;
-            }
-        </style>
-    </head>
-
-    <body>
         <script>
             $(document).ready(function() {
                 $("#Add").on("click", function() {
@@ -139,9 +126,9 @@
             <form action="{{ url_for("save_results") }}" method="POST">
                 <label>
                     Enter the file extension you would like to use to save the file:<br>
-                    <input type="radio" name="file_extension"> .tsv (Tab seperated file) <br>
-                    <input type="radio" name="file_extension"> .txt (Text file) <br>
-                    <input type="radio" name="file_extension"> .xlsx (Excel file) <br>
+                    <input type="radio" name="file_extension" value="tsv"> .tsv (Tab seperated file) <br>
+                    <input type="radio" name="file_extension" value="txt"> .txt (Text file) <br>
+                    <input type="radio" name="file_extension" value="xlsx"> .xlsx (Excel file) <br>
                 </label>
                 <button name="search" type="submit">Save results</button><br><br>
             </form>
@@ -161,13 +148,18 @@
                             <td>{{ gene.rsplit(" ", 1)[1] }}</td>
                             <td><a href="{{ results[key][5] }}">{{ key }}</a></td>
                             <td>{{ results[key][6] }}</td>
-                            <td>{{ results[key][7][results[key][2].index(gene)] }}</td>
+                            <td>{% for i in results[key][7][results[key][2].index(gene)] %}
+                                    {% if i != results[key][7][results[key][2].index(gene)][-1] %}
+                                        {{ i + "," }}
+                                    {% else %}
+                                        {{ i }}
+                                    {% endif %}
+                                {% endfor %}
+                            </td>
                         </tr>
                         {% endfor %}
                 {% endfor %}
             </table>
-
-            <br><br>
         </div>
     </body>
 </html>

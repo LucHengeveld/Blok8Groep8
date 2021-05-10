@@ -168,6 +168,8 @@ def publication_date(results):
     for record in records:
         results[record["PMID"]].append(record["DP"])
 
+    for key in results:
+        print(key + "\t" + str(results[key]))
     return results
 
 
