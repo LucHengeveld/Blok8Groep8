@@ -379,19 +379,21 @@ def read_pubtator_file(pubtator_link, gene_panel_dict, genepanel_filter):
                            lines[i].split("\t")[-1]
                     if gene.upper() not in genelist:
                         if gene.lower() not in genelist:
-                            if genepanel_filter != "":
-                                genepanelboolean = False
-                                if "," in genepanel_filter.replace(" ", ""):
-                                    genepanel_filter_lijst = genepanel_filter.replace(" ", "").split(",")
+                            if gene not in genelist:
+                                if genepanel_filter != "":
+                                    genepanelboolean = False
+                                    if "," in genepanel_filter.replace(" ", ""):
+                                        genepanel_filter_lijst = genepanel_filter.replace(" ", "").split(",")
+                                    else:
+                                        genepanel_filter_lijst.append(genepanel_filter)
+                                    for j in genepanel_filter_lijst:
+                                        if lines[i].split("\t")[3] in gene_panel_dict[j.upper()]:
+                                            genepanelboolean = True
+                                    if genepanelboolean == False:
+                                        if gene not in genelist:
+                                            genelist.append(gene)
                                 else:
-                                    genepanel_filter_lijst.append(genepanel_filter)
-                                for j in genepanel_filter_lijst:
-                                    if lines[i].split("\t")[3] in gene_panel_dict[j.upper()]:
-                                        genepanelboolean = True
-                                if genepanelboolean == False:
                                     genelist.append(gene)
-                            else:
-                                genelist.append(gene)
                 elif "Disease" in lines[i]:
                     disease = lines[i].split("\t")[3] + " " + \
                               lines[i].split("\t")[-1]
