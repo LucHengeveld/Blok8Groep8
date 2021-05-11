@@ -62,7 +62,7 @@
                 </label><br><br>
 
                 <label>
-                    Please enter the genepanel selection you would
+                    Please enter the gene panel selection you would
                     like to exclude: <br>
                     <input type="text" name="genepanel_filter" size="50"/>
                 </label><br><br>
@@ -77,53 +77,7 @@
 
             <br><br><hr>
 
-            <h2>Entered search keywords:</h2>
-
-            <label>
-                <b>OR filter:</b><br>
-                {% for input in or_list %}
-                    {{ input }}<br>
-                {% endfor %}
-            </label><br><br>
-
-            <label>
-                <b>AND filter:</b><br>
-                {{ and_filter }}
-            </label><br><br>
-
-            <label>
-                <b>NOT filter:</b><br>
-                {{ not_filter }}
-            </label><br><br>
-
-            <label>
-                <b>Gene filter:</b><br>
-                {{ gene_filter }}
-            </label><br><br>
-
-            <label>
-                <b>Date filter (year-month-day):</b><br>
-                {{ date_filter }}
-            </label><br><br>
-
-            <label>
-                <b>Genepanel file:</b><br>
-                {{ genepanel_file }}
-            </label><br><br>
-
-            <label>
-                <b>Genepanel filter:</b><br>
-                {{ genepanel_filter }}
-            </label><br><br>
-
-            <label>
-                <b>E-mail:</b><br>
-                {{ email }}
-            </label>
-
-            <br><br><hr>
-
-            <h2>Search results:</h2>
+             <h2>Search results:</h2>
             <label>No results found. Please check the info page.</label>
         </div>
     </body>

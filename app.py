@@ -37,7 +37,7 @@ def get_input():
             print(email)
 
             Entrez.email = email
-            genepanel_file = "C:/Users/luche/Documents/HAN/Leerjaar_2/Informatica Jaar 2/Blok 8/GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
+            # genepanel_file = "/home/christel/PycharmProjects/Blok8Groep8/GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
             gp_table = excel_reader(genepanel_file)
             genes = get_column(gp_table, "GenePanels_Symbol")
             gene_panels_list = get_column(gp_table, "GenePanel")
@@ -50,12 +50,12 @@ def get_input():
                               gene_filter)
             query = making_query(or_list2, and_filter2, not_filter2,
                                  gene_filter2)
-            query = "((ABC transporter [tiab] OR transporter [tiab] OR transport [" \
-                    "tiab]) AND (disease [tiab] OR mutation [tiab] OR mutations [" \
-                    "tiab] OR liver disease [tiab]) AND (lipids [tiab] OR " \
-                    "cholesterol [tiab] OR bile salts [tiab] OR canalicular membrane " \
-                    "[tiab] OR phosphatidylcholine [tiab] OR PC [tiab]) AND (ABCB4 [" \
-                    "tiab] OR ABCB4 deficiency [tiab])) "
+            # query = "((ABC transporter [tiab] OR transporter [tiab] OR transport [" \
+            #         "tiab]) AND (disease [tiab] OR mutation [tiab] OR mutations [" \
+            #         "tiab] OR liver disease [tiab]) AND (lipids [tiab] OR " \
+            #         "cholesterol [tiab] OR bile salts [tiab] OR canalicular membrane " \
+            #         "[tiab] OR phosphatidylcholine [tiab] OR PC [tiab]) AND (ABCB4 [" \
+            #         "tiab] OR ABCB4 deficiency [tiab])) "
             id_list = get_pubmed_ids(query, date_filter)
             pubtator_link = get_pubtator_link(id_list)
             results = read_pubtator_file(pubtator_link, gene_panel_dict,
