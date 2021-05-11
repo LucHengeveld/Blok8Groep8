@@ -22,22 +22,16 @@ def get_input():
 
             and_filter = request.form.get("and_filter", "")
             not_filter = request.form.get("not_filter", "")
-            genepanel_file = request.form.get("genepanel_file", "")
+            genepanel_file = request.form.get("genepanel_file")
             gene_filter = request.form.get("gene_filter", "")
             date_filter = request.form.get("date_filter", "")
             genepanel_filter = request.form.get("genepanel_filter", "")
 
-            print(or_list)
-            print(and_filter)
-            print(not_filter)
             print(genepanel_file)
-            print(gene_filter)
-            print(date_filter)
             print(genepanel_filter)
-            print(email)
 
             Entrez.email = email
-            # genepanel_file = "/home/christel/PycharmProjects/Blok8Groep8/GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
+            genepanel_file = "C:/Users/luche/Documents/HAN/Leerjaar_2/Informatica Jaar 2/Blok 8/GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
             gp_table = excel_reader(genepanel_file)
             genes = get_column(gp_table, "GenePanels_Symbol")
             gene_panels_list = get_column(gp_table, "GenePanel")
@@ -48,14 +42,16 @@ def get_input():
             or_list2, and_filter2, not_filter2, gene_filter2 = \
                 retrieve_data(or_list, and_filter, not_filter,
                               gene_filter)
+            print(genes_dict)
+            print(gene_panel_dict)
             query = making_query(or_list2, and_filter2, not_filter2,
                                  gene_filter2)
-            # query = "((ABC transporter [tiab] OR transporter [tiab] OR transport [" \
-            #         "tiab]) AND (disease [tiab] OR mutation [tiab] OR mutations [" \
-            #         "tiab] OR liver disease [tiab]) AND (lipids [tiab] OR " \
-            #         "cholesterol [tiab] OR bile salts [tiab] OR canalicular membrane " \
-            #         "[tiab] OR phosphatidylcholine [tiab] OR PC [tiab]) AND (ABCB4 [" \
-            #         "tiab] OR ABCB4 deficiency [tiab])) "
+            query = "((ABC transporter [tiab] OR transporter [tiab] OR transport [" \
+                    "tiab]) AND (disease [tiab] OR mutation [tiab] OR mutations [" \
+                    "tiab] OR liver disease [tiab]) AND (lipids [tiab] OR " \
+                    "cholesterol [tiab] OR bile salts [tiab] OR canalicular membrane " \
+                    "[tiab] OR phosphatidylcholine [tiab] OR PC [tiab]) AND (ABCB4 [" \
+                    "tiab] OR ABCB4 deficiency [tiab])) "
             id_list = get_pubmed_ids(query, date_filter)
             pubtator_link = get_pubtator_link(id_list)
             results = read_pubtator_file(pubtator_link, gene_panel_dict,
@@ -87,7 +83,6 @@ def get_input():
                                    results="")
     except:
         return render_template("home_error.html")
-
 
 def excel_reader(file_name):
     """This function converts the table in the excel file to a table in
@@ -364,6 +359,7 @@ def read_pubtator_file(pubtator_link, gene_panel_dict, genepanel_filter):
     genelist = []
     diseaselist = []
     mutationlist = []
+    genepanel_filter_lijst = []
     for i in range(len(lines)):
         if "|t|" in lines[i]:
             article_id = lines[i].split("|t|")[0]
