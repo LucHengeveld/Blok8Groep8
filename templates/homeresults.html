@@ -62,7 +62,8 @@
                 </label><br><br>
 
                 <label>
-                    Enter the genepanel selection below:<br>
+                    Please enter the genepanel selection you would
+                    like to exclude: <br>
                     <input type="text" name="genepanel_filter" size="50"/>
                 </label><br><br>
 
@@ -79,7 +80,7 @@
             <h2>Entered search keywords:</h2>
 
             <label>
-                <b>OR filters:</b><br>
+                <b>OR filter:</b><br>
                 {% for input in or_list %}
                     {{ input }}<br>
                 {% endfor %}
