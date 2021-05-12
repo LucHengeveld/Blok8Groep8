@@ -30,7 +30,6 @@
             <button id="Add">Click to add more OR input fields</button>
             <button id="Remove">Click to remove the last OR input field</button><br><br>
 
-            <form action="{{ url_for("get_input") }}" method="POST">
                 <label>
                     <input type="text" name="or_filter" size="50"/>
                 </label>
@@ -72,10 +71,13 @@
                     <input type="text" name="email" size="50"/>
                 </label><br><br>
 
+            <form action="{{ url_for("get_input") }}" method="POST">
+                Would you like to use co-occurence to connect possible diseases to genes? (Diseases aren't 100% correct!)<br>
+                <input type="radio" name="occurence" value="Yes">Yes<br>
+                <input type="radio" name="occurence" value="No">No<br><br>
                 <button name="search" type="submit">Search for PubMed articles</button>
             </form>
-
-            <br><br><hr>
+            <br><hr>
 
             <h2>Entered search keywords:</h2>
 
@@ -119,8 +121,12 @@
             <label>
                 <b>E-mail:</b><br>
                 {{ email }}
-            </label>
+            </label><br><br>
 
+            <label>
+                <b>Co-occurence filter to add possible diseases to results:</b><br>
+                {{ use_co_occurence }}
+            </label>
             <br><br><hr>
 
             <h2>Search results:</h2>

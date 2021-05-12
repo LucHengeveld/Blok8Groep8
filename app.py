@@ -26,6 +26,10 @@ def get_input():
             gene_filter = request.form.get("gene_filter", "")
             date_filter = request.form.get("date_filter", "")
             genepanel_filter = request.form.get("genepanel_filter", "")
+            try:
+                use_co_occurence = request.form["occurence"]
+            except:
+                use_co_occurence = "Not selected"
 
             print(genepanel_file)
             print(genepanel_filter)
@@ -33,7 +37,7 @@ def get_input():
             Entrez.email = email
 
             # todo genepanel reader module
-            genepanel_file = "GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
+            genepanel_file = "C:/Users/luche/Documents/HAN/Leerjaar_2/Informatica Jaar 2/Blok 8/GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
             gp_table = excel_reader(genepanel_file)
             genes = get_column(gp_table, "GenePanels_Symbol")
             gene_panels_list = get_column(gp_table, "GenePanel")
@@ -78,6 +82,11 @@ def get_input():
             print(diseasepoints)
             print(mutationpoints)
 
+            if use_co_occurence == "Yes":
+                print("Add diseases to results")
+            else:
+                print("Don't add diseases to results")
+
             return render_template("homeresults.html",
                                    or_list=or_list,
                                    and_filter=and_filter,
@@ -87,7 +96,8 @@ def get_input():
                                    genepanel_file=genepanel_file,
                                    genepanel_filter=genepanel_filter,
                                    email=email,
-                                   results=results)
+                                   results=results,
+                                   use_co_occurence=use_co_occurence)
         else:
             return render_template("home.html",
                                    or_list="",
@@ -98,7 +108,8 @@ def get_input():
                                    genepanel_file="",
                                    genepanel_filter="",
                                    email="",
-                                   results="")
+                                   results="",
+                                   use_co_occurence="")
     except:
         return render_template("home_error.html")
 
