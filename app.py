@@ -31,7 +31,9 @@ def get_input():
             print(genepanel_filter)
 
             Entrez.email = email
-            genepanel_file = "C:/Users/luche/Documents/HAN/Leerjaar_2/Informatica Jaar 2/Blok 8/GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
+
+            # todo genepanel reader module
+            genepanel_file = "GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
             gp_table = excel_reader(genepanel_file)
             genes = get_column(gp_table, "GenePanels_Symbol")
             gene_panels_list = get_column(gp_table, "GenePanel")
@@ -39,13 +41,15 @@ def get_input():
                 gene_panels_list)
             genes_dict = make_gene_dict(genes, gps_list)
             gene_panel_dict = make_gene_panel_dict(gps_set, genes_dict)
+
+            # todo get results module/Pubmed module
             or_list2, and_filter2, not_filter2, gene_filter2 = \
                 retrieve_data(or_list, and_filter, not_filter,
                               gene_filter)
-            print(genes_dict)
-            print(gene_panel_dict)
-            query = making_query(or_list2, and_filter2, not_filter2,
-                                 gene_filter2)
+            # print(genes_dict)
+            # print(gene_panel_dict)
+            # query = making_query(or_list2, and_filter2, not_filter2,
+            #                      gene_filter2)
             query = "((ABC transporter [tiab] OR transporter [tiab] OR transport [" \
                     "tiab]) AND (disease [tiab] OR mutation [tiab] OR mutations [" \
                     "tiab] OR liver disease [tiab]) AND (lipids [tiab] OR " \
@@ -59,6 +63,20 @@ def get_input():
             results = pubmed_hyperlink(results)
             results = publication_date(results)
             results = genepanel_results(results, genes_dict)
+
+            # todo co-occurrence module
+            titlepoints = 10
+            sentencepoints = 5
+            abstractpoints = 3
+            articlepoints = 1
+            diseasepoints = co_occurrence(results, articlepoints,
+                                          abstractpoints, sentencepoints,
+                                          titlepoints, 3)
+            mutationpoints = co_occurrence(results, articlepoints,
+                                           abstractpoints, sentencepoints,
+                                           titlepoints, 4)
+            print(diseasepoints)
+            print(mutationpoints)
 
             return render_template("homeresults.html",
                                    or_list=or_list,
@@ -83,6 +101,7 @@ def get_input():
                                    results="")
     except:
         return render_template("home_error.html")
+
 
 def excel_reader(file_name):
     """This function converts the table in the excel file to a table in
@@ -378,12 +397,16 @@ def read_pubtator_file(pubtator_link, gene_panel_dict, genepanel_filter):
                             if gene not in genelist:
                                 if genepanel_filter != "":
                                     genepanelboolean = False
-                                    if "," in genepanel_filter.replace(" ", ""):
-                                        genepanel_filter_lijst = genepanel_filter.replace(" ", "").split(",")
+                                    if "," in genepanel_filter.replace(" ",
+                                                                       ""):
+                                        genepanel_filter_lijst = genepanel_filter.replace(
+                                            " ", "").split(",")
                                     else:
-                                        genepanel_filter_lijst.append(genepanel_filter)
+                                        genepanel_filter_lijst.append(
+                                            genepanel_filter)
                                     for j in genepanel_filter_lijst:
-                                        if lines[i].split("\t")[3] in gene_panel_dict[j.upper()]:
+                                        if lines[i].split("\t")[3] in \
+                                                gene_panel_dict[j.upper()]:
                                             genepanelboolean = True
                                     if genepanelboolean == False:
                                         if gene not in genelist:
@@ -470,6 +493,66 @@ def publication_date(results):
         results[record["PMID"]].append(record["DP"])
 
     return results
+
+
+def co_occurrence(results, articlepoints, abstractpoints, sentencepoints,
+                  titlepoints, pos):
+    """This function gives points to every combination of genes and
+    diseases/mutations in the PubMed articles (title and/or abstract).
+
+    :param results: Dictionary with as key the article ID and as value
+    a list with the structure [title, abstract, genelist, diseaselist,
+    mutationlist, hyperlink]
+    :param articlepoints: The amount of points for a gene and
+    disease/mutation in the same article
+    :param abstractpoints: The amount of points for a gene and
+    disease/mutation in the same abstract
+    :param sentencepoints: The amount of points for a gene and
+    disease/mutation in the same sentence
+    :param titlepoints: The amount of points for a gene and
+    disease/mutation in the same title
+    :param pos: The position in the results dictionary. 3 = disease,
+    4 = mutation
+    :return: The list with all the points per gene and disease/mutation
+    combination per article
+    """
+    points = []
+    for key in results:
+        pointsperid = []
+        for gene in results[key][2]:
+            gene = gene.rsplit(" ", 1)[0]
+            pointspergene = []
+            pointspergenedict = {}
+            for value in results[key][pos]:
+                value = value.rsplit(" ", 1)[0]
+                count = 0
+
+                # If gene and disease/mutation are in the same article,
+                # but not in the title or abstract
+                if gene in results[key][0] and value in results[key][1] \
+                        or gene in results[key][1] and value in \
+                        results[key][0]:
+                    count += articlepoints
+
+                # If gene and disease/mutation are both in the abstract
+                if gene in results[key][1] and value in results[key][1]:
+                    count += abstractpoints
+
+                # If gene and disease/mutation are both in the same line
+                # of the abstract
+                for line in results[key][1].split(". "):
+                    if gene in line and value in line:
+                        count += sentencepoints
+
+                # If gene and disease/mutation are both in the title
+                if gene in results[key][0] and value in results[key][0]:
+                    count += titlepoints
+
+                pointspergene.append(count)
+            pointspergenedict[gene] = pointspergene
+            pointsperid.append(pointspergenedict)
+        points.append(pointsperid)
+    return points
 
 
 def genepanel_results(results, genes_dict):
