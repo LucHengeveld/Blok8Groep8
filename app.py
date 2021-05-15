@@ -4,6 +4,8 @@ import pandas as pd
 from Bio import Entrez, Medline
 import requests
 from datetime import datetime
+import csv
+# from xlsxwriter.workbook import Workbook
 
 app = Flask(__name__)
 
@@ -31,22 +33,22 @@ def get_input():
             except:
                 use_co_occurence = "Not selected"
 
-            print(genepanel_file)
-            print(genepanel_filter)
+            # print(genepanel_file)
+            # print(genepanel_filter)
 
             Entrez.email = email
 
-            # todo genepanel reader module
             genepanel_file = "C:/Users/luche/Documents/HAN/Leerjaar_2/Informatica Jaar 2/Blok 8/GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
             gp_table = excel_reader(genepanel_file)
             genes = get_column(gp_table, "GenePanels_Symbol")
+            synonyms = get_column(gp_table, "Aliases")
             gene_panels_list = get_column(gp_table, "GenePanel")
             gps_list, gps_set = make_genepanel_list_set(
                 gene_panels_list)
             genes_dict = make_gene_dict(genes, gps_list)
             gene_panel_dict = make_gene_panel_dict(gps_set, genes_dict)
+            genes_dict = gene_synonyms(synonyms, gps_list, genes_dict)
 
-            # todo get results module/Pubmed module
             or_list2, and_filter2, not_filter2, gene_filter2 = \
                 retrieve_data(or_list, and_filter, not_filter,
                               gene_filter)
@@ -79,9 +81,12 @@ def get_input():
             mutationpoints = co_occurrence(results, articlepoints,
                                            abstractpoints, sentencepoints,
                                            titlepoints, 4)
-            print(diseasepoints)
-            print(mutationpoints)
+            # print(diseasepoints)
+            # print(mutationpoints)
 
+            # Ik (Luc) zal co occurence diseases wel toevoegen aan html pagina
+            # als het je lukt om het toe te voegen aan de results dictionary
+            # structuur als het kan: [[gen1 disease1, gen1 disease2, enz][gen2 disease1, gen2 disease2, enz]]
             if use_co_occurence == "Yes":
                 print("Add diseases to results")
             else:
@@ -186,6 +191,14 @@ def make_gene_panel_dict(gps_set, genes_dict):
         gene_panel_dict[gene_panel] = [k for k, v in genes_dict.items() if
                                        gene_panel in v]
     return gene_panel_dict
+
+
+def gene_synonyms(synonyms, gps_list, genes_dict):
+    for row in range(len(synonyms)):
+        synonyms[row] = str(synonyms[row]).split("|")
+        for gene in range(len(synonyms[row])):
+            genes_dict[synonyms[row][gene]] = gps_list[row]
+    return genes_dict
 
 
 def retrieve_data(or_list, and_filter, not_filter, gene_filter):
@@ -587,6 +600,34 @@ def save_results():
         selected_extension = "tsv"
 
     print(selected_extension)
+
+    if selected_extension == "txt":
+        output_file = "results.txt"
+    else:
+        output_file = "results.tsv"
+
+    # with open(output_file, 'w', newline='') as out_file:
+    #     tsv_writer = csv.writer(out_file, delimiter='\t')
+    #     tsv_writer.writerow(["Gene name", "Gene ID", "Gene Panels", "Pubmed ID", "Pubmed Hyperlink", "Publication Date"])
+    #     for key in results:
+    #         for gene in results[key][2]:
+    #             genepanelstring = ""
+    #             for i in results[key][7][results[key][2].index(gene)]:
+    #                 if i != results[key][7][results[key][2].index(gene)][-1]:
+    #                     genepanelstring += i + ";"
+    #                 else:
+    #                     genepanelstring += i
+    #             tsv_writer.writerow([gene.rsplit(" ", 1)[0], gene.rsplit(" ", 1)[1], genepanelstring, key, results[key][5], results[key][6]])
+    # out_file.close()
+    #
+    # if selected_extension == "xlsx":
+    #     xlsx_file = 'results.xlsx'
+    #     workbook = Workbook(xlsx_file, {'strings_to_numbers': True})
+    #     worksheet = workbook.add_worksheet()
+    #     tsv_reader = csv.reader(open(output_file, 'rt'), delimiter='\t')
+    #     for row, data in enumerate(tsv_reader):
+    #         worksheet.write_row(row, 0, data)
+    #     workbook.close()
 
     return render_template("home.html")
 
