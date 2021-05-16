@@ -11,7 +11,7 @@ app = Flask(__name__)
 @app.route('/')
 @app.route('/home.html', methods=["POST", "GET"])
 def get_input():
-    try:
+    #try:
         if request.method == 'POST':
 
             email = request.form.get("email", "")
@@ -45,7 +45,7 @@ def get_input():
             print(use_co_occurence)
 
             Entrez.email = email
-            genepanel_file = "C:/Users/luche/Documents/HAN/Leerjaar_2/Informatica Jaar 2/Blok 8/GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
+            genepanel_file = "GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
             gp_table = excel_reader(genepanel_file)
             genes = get_column(gp_table, "GenePanels_Symbol")
             synonyms = get_column(gp_table, "Aliases")
@@ -59,8 +59,8 @@ def get_input():
             or_list2, and_filter2, not_filter2, gene_filter2 = \
                 retrieve_data(or_list, and_filter, not_filter,
                               gene_filter)
-            print(genes_dict)
-            print(gene_panel_dict)
+            #print(genes_dict)
+            #print(gene_panel_dict)
             query = making_query(or_list2, and_filter2, not_filter2,
                                  gene_filter2)
             query = "((ABC transporter [tiab] OR transporter [tiab] OR transport [" \
@@ -82,18 +82,26 @@ def get_input():
             # Zal co occurence diseases wel toevoegen aan html pagina
             # als het je lukt om het toe te voegen aan de results dictionary
             # structuur als het kan: [[gen1 disease1, gen1 disease2, enz][gen2 disease1, gen2 disease2, enz]]
-            titlepoints = 10
-            sentencepoints = 5
-            abstractpoints = 3
-            articlepoints = 1
-            diseasepoints = co_occurrence(results, articlepoints,
-                                          abstractpoints, sentencepoints,
-                                          titlepoints, 3)
-            mutationpoints = co_occurrence(results, articlepoints,
-                                           abstractpoints, sentencepoints,
-                                           titlepoints, 4)
-            # print(diseasepoints)
-            # print(mutationpoints)
+            if use_co_occurence == "Yes":
+                titlepoints = 10
+                sentencepoints = 5
+                abstractpoints = 3
+                articlepoints = 1
+                diseasepoints = co_occurrence(results, articlepoints,
+                                              abstractpoints, sentencepoints,
+                                              titlepoints, 3)
+                mutationpoints = co_occurrence(results, articlepoints,
+                                               abstractpoints, sentencepoints,
+                                               titlepoints, 4)
+
+                # sorted(zip(score, name), reverse=True)[:3]
+                for key, value in results.items():
+                    print(key, value)
+                    for gene in diseasepoints.get(key):
+                        print(gene)
+                print(diseasepoints)
+                #print(diseasepoints)
+                # print(mutationpoints)
 
             return render_template("homeresults.html",
                                    or_list=or_list,
@@ -118,8 +126,8 @@ def get_input():
                                    email="",
                                    use_co_occurence="",
                                    results="")
-    except:
-        return render_template("home_error.html")
+   # except:
+        #return render_template("home_error.html")
 
 
 def excel_reader(file_name):
@@ -541,15 +549,17 @@ def co_occurrence(results, articlepoints, abstractpoints, sentencepoints,
     :return: The list with all the points per gene and disease/mutation
     combination per article
     """
-    points = []
+    points = {}
     for key in results:
         pointsperid = []
         for gene in results[key][2]:
             gene = gene.rsplit(" ", 1)[0]
             pointspergene = []
+            valuespergene = []
             pointspergenedict = {}
             for value in results[key][pos]:
                 value = value.rsplit(" ", 1)[0]
+                valuespergene.append(value)
                 count = 0
 
                 # If gene and disease/mutation are in the same article,
@@ -574,9 +584,9 @@ def co_occurrence(results, articlepoints, abstractpoints, sentencepoints,
                     count += titlepoints
 
                 pointspergene.append(count)
-            pointspergenedict[gene] = pointspergene
+            pointspergenedict[gene] = zip(pointspergene, valuespergene)
             pointsperid.append(pointspergenedict)
-        points.append(pointsperid)
+        points[key] = pointsperid
     return points
 
 
