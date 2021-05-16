@@ -598,7 +598,35 @@ def save_results():
         selected_extension = "tsv"
 
     print(selected_extension)
+    
+    if selected_extension == "txt":
+        output_file = "results.txt"
+    else:
+        output_file = "results.tsv"
 
+    # with open(output_file, 'w', newline='') as out_file:
+    #     tsv_writer = csv.writer(out_file, delimiter='\t')
+    #     tsv_writer.writerow(["Gene name", "Gene ID", "Gene Panels", "Pubmed ID", "Pubmed Hyperlink", "Publication Date"])
+    #     for key in results:
+    #         for gene in results[key][2]:
+    #             genepanelstring = ""
+    #             for i in results[key][7][results[key][2].index(gene)]:
+    #                 if i != results[key][7][results[key][2].index(gene)][-1]:
+    #                     genepanelstring += i + ";"
+    #                 else:
+    #                     genepanelstring += i
+    #             tsv_writer.writerow([gene.rsplit(" ", 1)[0], gene.rsplit(" ", 1)[1], genepanelstring, key, results[key][5], results[key][6]])
+    # out_file.close()
+    #
+    # if selected_extension == "xlsx":
+    #     xlsx_file = 'results.xlsx'
+    #     workbook = Workbook(xlsx_file, {'strings_to_numbers': True})
+    #     worksheet = workbook.add_worksheet()
+    #     tsv_reader = csv.reader(open(output_file, 'rt'), delimiter='\t')
+    #     for row, data in enumerate(tsv_reader):
+    #         worksheet.write_row(row, 0, data)
+    #     workbook.close()
+    
     return render_template("home.html")
 
 
