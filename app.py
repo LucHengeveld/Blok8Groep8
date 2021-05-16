@@ -94,13 +94,9 @@ def get_input():
                                                abstractpoints, sentencepoints,
                                                titlepoints, 4)
 
-                # sorted(zip(score, name), reverse=True)[:3]
                 for key, value in results.items():
-                    print(key, value)
-                    print(diseasepoints.get(key))
-                    #for gene in diseasepoints.get(key):
-                        #print(gene)
-                print(diseasepoints)
+                    for key2, value2 in diseasepoints.get(key).items():
+                        print(key2, sorted(value2, reverse=True)[:3])
                 #print(diseasepoints)
                 # print(mutationpoints)
 
