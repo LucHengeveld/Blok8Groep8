@@ -4,8 +4,6 @@ import pandas as pd
 from Bio import Entrez, Medline
 import requests
 from datetime import datetime
-import csv
-# from xlsxwriter.workbook import Workbook
 
 app = Flask(__name__)
 
@@ -28,16 +26,25 @@ def get_input():
             gene_filter = request.form.get("gene_filter", "")
             date_filter = request.form.get("date_filter", "")
             genepanel_filter = request.form.get("genepanel_filter", "")
+
             try:
                 use_co_occurence = request.form["occurence"]
+                print(use_co_occurence)
             except:
                 use_co_occurence = "Not selected"
 
-            # print(genepanel_file)
-            # print(genepanel_filter)
+            print(email)
+            print(or_filter)
+            print(or_list)
+            print(and_filter)
+            print(not_filter)
+            print(genepanel_file)
+            print(gene_filter)
+            print(date_filter)
+            print(genepanel_filter)
+            print(use_co_occurence)
 
             Entrez.email = email
-
             genepanel_file = "C:/Users/luche/Documents/HAN/Leerjaar_2/Informatica Jaar 2/Blok 8/GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
             gp_table = excel_reader(genepanel_file)
             genes = get_column(gp_table, "GenePanels_Symbol")
@@ -47,15 +54,15 @@ def get_input():
                 gene_panels_list)
             genes_dict = make_gene_dict(genes, gps_list)
             gene_panel_dict = make_gene_panel_dict(gps_set, genes_dict)
-            genes_dict = gene_synonyms(synonyms, gps_list, genes_dict)
+            genes_dict, gene_panel_dict = gene_synonyms(synonyms, gps_list, genes_dict, gene_panel_dict)
 
             or_list2, and_filter2, not_filter2, gene_filter2 = \
                 retrieve_data(or_list, and_filter, not_filter,
                               gene_filter)
-            # print(genes_dict)
-            # print(gene_panel_dict)
-            # query = making_query(or_list2, and_filter2, not_filter2,
-            #                      gene_filter2)
+            print(genes_dict)
+            print(gene_panel_dict)
+            query = making_query(or_list2, and_filter2, not_filter2,
+                                 gene_filter2)
             query = "((ABC transporter [tiab] OR transporter [tiab] OR transport [" \
                     "tiab]) AND (disease [tiab] OR mutation [tiab] OR mutations [" \
                     "tiab] OR liver disease [tiab]) AND (lipids [tiab] OR " \
@@ -64,6 +71,7 @@ def get_input():
                     "tiab] OR ABCB4 deficiency [tiab])) "
             id_list = get_pubmed_ids(query, date_filter)
             pubtator_link = get_pubtator_link(id_list)
+
             results = read_pubtator_file(pubtator_link, gene_panel_dict,
                                          genepanel_filter)
             results = pubmed_hyperlink(results)
@@ -84,14 +92,6 @@ def get_input():
             # print(diseasepoints)
             # print(mutationpoints)
 
-            # Ik (Luc) zal co occurence diseases wel toevoegen aan html pagina
-            # als het je lukt om het toe te voegen aan de results dictionary
-            # structuur als het kan: [[gen1 disease1, gen1 disease2, enz][gen2 disease1, gen2 disease2, enz]]
-            if use_co_occurence == "Yes":
-                print("Add diseases to results")
-            else:
-                print("Don't add diseases to results")
-
             return render_template("homeresults.html",
                                    or_list=or_list,
                                    and_filter=and_filter,
@@ -101,8 +101,8 @@ def get_input():
                                    genepanel_file=genepanel_file,
                                    genepanel_filter=genepanel_filter,
                                    email=email,
-                                   results=results,
-                                   use_co_occurence=use_co_occurence)
+                                   use_co_occurence=use_co_occurence,
+                                   results=results)
         else:
             return render_template("home.html",
                                    or_list="",
@@ -113,8 +113,8 @@ def get_input():
                                    genepanel_file="",
                                    genepanel_filter="",
                                    email="",
-                                   results="",
-                                   use_co_occurence="")
+                                   use_co_occurence="",
+                                   results="")
     except:
         return render_template("home_error.html")
 
@@ -193,12 +193,15 @@ def make_gene_panel_dict(gps_set, genes_dict):
     return gene_panel_dict
 
 
-def gene_synonyms(synonyms, gps_list, genes_dict):
+def gene_synonyms(synonyms, gps_list, genes_dict, gene_panel_dict):
     for row in range(len(synonyms)):
         synonyms[row] = str(synonyms[row]).split("|")
         for gene in range(len(synonyms[row])):
             genes_dict[synonyms[row][gene]] = gps_list[row]
-    return genes_dict
+            for genpanel in gps_list[row]:
+                gene_panel_dict[genpanel].append(synonyms[row][gene])
+
+    return genes_dict, gene_panel_dict
 
 
 def retrieve_data(or_list, and_filter, not_filter, gene_filter):
@@ -321,7 +324,6 @@ def making_query(or_list2, and_filter2, not_filter2, gene_filter2):
 
         query = str(query).replace("', '( ", " ").replace("['", "(") \
             .replace("']", ")")
-        print("Query: ", query)
         return query
 
     except ValueError:
@@ -421,17 +423,14 @@ def read_pubtator_file(pubtator_link, gene_panel_dict, genepanel_filter):
                             if gene not in genelist:
                                 if genepanel_filter != "":
                                     genepanelboolean = False
-                                    if "," in genepanel_filter.replace(" ",
-                                                                       ""):
-                                        genepanel_filter_lijst = genepanel_filter.replace(
-                                            " ", "").split(",")
+                                    if "," in genepanel_filter.replace(" ", ""):
+                                        genepanel_filter_lijst = genepanel_filter.upper().replace(" ", "").split(",")
                                     else:
-                                        genepanel_filter_lijst.append(
-                                            genepanel_filter)
+                                        genepanel_filter_lijst.append(genepanel_filter.upper())
                                     for j in genepanel_filter_lijst:
-                                        if lines[i].split("\t")[3] in \
-                                                gene_panel_dict[j.upper()]:
-                                            genepanelboolean = True
+                                        if j in gene_panel_dict.keys():
+                                            if lines[i].split("\t")[3] in gene_panel_dict[j]:
+                                                genepanelboolean = True
                                     if genepanelboolean == False:
                                         if gene not in genelist:
                                             genelist.append(gene)
@@ -523,7 +522,6 @@ def co_occurrence(results, articlepoints, abstractpoints, sentencepoints,
                   titlepoints, pos):
     """This function gives points to every combination of genes and
     diseases/mutations in the PubMed articles (title and/or abstract).
-
     :param results: Dictionary with as key the article ID and as value
     a list with the structure [title, abstract, genelist, diseaselist,
     mutationlist, hyperlink]
@@ -600,34 +598,6 @@ def save_results():
         selected_extension = "tsv"
 
     print(selected_extension)
-
-    if selected_extension == "txt":
-        output_file = "results.txt"
-    else:
-        output_file = "results.tsv"
-
-    # with open(output_file, 'w', newline='') as out_file:
-    #     tsv_writer = csv.writer(out_file, delimiter='\t')
-    #     tsv_writer.writerow(["Gene name", "Gene ID", "Gene Panels", "Pubmed ID", "Pubmed Hyperlink", "Publication Date"])
-    #     for key in results:
-    #         for gene in results[key][2]:
-    #             genepanelstring = ""
-    #             for i in results[key][7][results[key][2].index(gene)]:
-    #                 if i != results[key][7][results[key][2].index(gene)][-1]:
-    #                     genepanelstring += i + ";"
-    #                 else:
-    #                     genepanelstring += i
-    #             tsv_writer.writerow([gene.rsplit(" ", 1)[0], gene.rsplit(" ", 1)[1], genepanelstring, key, results[key][5], results[key][6]])
-    # out_file.close()
-    #
-    # if selected_extension == "xlsx":
-    #     xlsx_file = 'results.xlsx'
-    #     workbook = Workbook(xlsx_file, {'strings_to_numbers': True})
-    #     worksheet = workbook.add_worksheet()
-    #     tsv_reader = csv.reader(open(output_file, 'rt'), delimiter='\t')
-    #     for row, data in enumerate(tsv_reader):
-    #         worksheet.write_row(row, 0, data)
-    #     workbook.close()
 
     return render_template("home.html")
 
