@@ -79,6 +79,9 @@ def get_input():
             results = genepanel_results(results, genes_dict)
 
             # todo co-occurrence module
+            # Zal co occurence diseases wel toevoegen aan html pagina
+            # als het je lukt om het toe te voegen aan de results dictionary
+            # structuur als het kan: [[gen1 disease1, gen1 disease2, enz][gen2 disease1, gen2 disease2, enz]]
             titlepoints = 10
             sentencepoints = 5
             abstractpoints = 3

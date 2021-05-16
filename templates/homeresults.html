@@ -142,34 +142,70 @@
                 </label>
                 <button name="search" type="submit">Save results</button><br><br>
             </form>
-            <table style="width:100%">
-                <tr>
-                    <th>Gene name</th>
-                    <th>Gene ID</th>
-                    <th>Pubmed ID (click for hyperlink)</th>
-                    <th>Publication date</th>
-                    <th>Genepanel</th>
-                </tr>
 
-                {% for key in results %}
-                    {% for gene in results[key][2] %}
-                        <tr>
-                            <td>{{ gene.rsplit(" ", 1)[0] }}</td>
-                            <td>{{ gene.rsplit(" ", 1)[1] }}</td>
-                            <td><a href="{{ results[key][5] }}">{{ key }}</a></td>
-                            <td>{{ results[key][6] }}</td>
-                            <td>{% for i in results[key][7][results[key][2].index(gene)] %}
-                                    {% if i != results[key][7][results[key][2].index(gene)][-1] %}
-                                        {{ i + "," }}
-                                    {% else %}
-                                        {{ i }}
-                                    {% endif %}
-                                {% endfor %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                {% endfor %}
-            </table>
+            {% if use_co_occurence == "Yes" %}
+                <table style="width:100%">
+                    <tr>
+                        <th>Gene name</th>
+                        <th>Gene ID</th>
+                        <th>Pubmed ID (click for hyperlink)</th>
+                        <th>Publication date</th>
+                        <th>Genepanel</th>
+                        <th>Possible diseases</th>
+                    </tr>
+
+                    {% for key in results %}
+                        {% for gene in results[key][2] %}
+                            <tr>
+                                <td>{{ gene.rsplit(" ", 1)[0] }}</td>
+                                <td>{{ gene.rsplit(" ", 1)[1] }}</td>
+                                <td><a href="{{ results[key][5] }}">{{ key }}</a></td>
+                                <td>{{ results[key][6] }}</td>
+                                <td>{% for i in results[key][7][results[key][2].index(gene)] %}
+                                        {% if i != results[key][7][results[key][2].index(gene)][-1] %}
+                                            {{ i + "," }}
+                                        {% else %}
+                                            {{ i }}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                            <td>Mogelijke diseases</td>
+                            </tr>
+                            {% endfor %}
+                    {% endfor %}
+                </table>
+            {% endif %}
+
+            {% if use_co_occurence != "Yes" %}
+                <table style="width:100%">
+                    <tr>
+                        <th>Gene name</th>
+                        <th>Gene ID</th>
+                        <th>Pubmed ID (click for hyperlink)</th>
+                        <th>Publication date</th>
+                        <th>Genepanel</th>
+                    </tr>
+
+                    {% for key in results %}
+                        {% for gene in results[key][2] %}
+                            <tr>
+                                <td>{{ gene.rsplit(" ", 1)[0] }}</td>
+                                <td>{{ gene.rsplit(" ", 1)[1] }}</td>
+                                <td><a href="{{ results[key][5] }}">{{ key }}</a></td>
+                                <td>{{ results[key][6] }}</td>
+                                <td>{% for i in results[key][7][results[key][2].index(gene)] %}
+                                        {% if i != results[key][7][results[key][2].index(gene)][-1] %}
+                                            {{ i + "," }}
+                                        {% else %}
+                                            {{ i }}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                    {% endfor %}
+                </table>
+            {% endif %}
         </div>
     </body>
 </html>
