@@ -11,7 +11,7 @@ app = Flask(__name__)
 @app.route('/')
 @app.route('/home.html', methods=["POST", "GET"])
 def get_input():
-    #try:
+    try:
         if request.method == 'POST':
 
             email = request.form.get("email", "")
@@ -97,8 +97,9 @@ def get_input():
                 # sorted(zip(score, name), reverse=True)[:3]
                 for key, value in results.items():
                     print(key, value)
-                    for gene in diseasepoints.get(key):
-                        print(gene)
+                    print(diseasepoints.get(key))
+                    #for gene in diseasepoints.get(key):
+                        #print(gene)
                 print(diseasepoints)
                 #print(diseasepoints)
                 # print(mutationpoints)
@@ -126,8 +127,8 @@ def get_input():
                                    email="",
                                    use_co_occurence="",
                                    results="")
-   # except:
-        #return render_template("home_error.html")
+    except:
+        return render_template("home_error.html")
 
 
 def excel_reader(file_name):
@@ -551,12 +552,11 @@ def co_occurrence(results, articlepoints, abstractpoints, sentencepoints,
     """
     points = {}
     for key in results:
-        pointsperid = []
+        pointsperid = {}
         for gene in results[key][2]:
             gene = gene.rsplit(" ", 1)[0]
             pointspergene = []
             valuespergene = []
-            pointspergenedict = {}
             for value in results[key][pos]:
                 value = value.rsplit(" ", 1)[0]
                 valuespergene.append(value)
@@ -584,8 +584,7 @@ def co_occurrence(results, articlepoints, abstractpoints, sentencepoints,
                     count += titlepoints
 
                 pointspergene.append(count)
-            pointspergenedict[gene] = zip(pointspergene, valuespergene)
-            pointsperid.append(pointspergenedict)
+            pointsperid[gene] = zip(pointspergene, valuespergene)
         points[key] = pointsperid
     return points
 
