@@ -12,14 +12,15 @@
             <li><a href="info.html">Info</a></li>
         </ul>
 
-        <form action="http://127.0.0.1:5000/upload.html" method="POST"
+        <form action="http://127.0.0.1:5000/upload_genepanel.html"
+              method="POST"
               enctype="multipart/form-data">
             <br><label>Enter a genepanel Excel file:</label><br><br>
             <input type="file" name="genepanel_file" accept=".xlsx"
                    size="50"/><br><br>
-            <button type="submit" name="submit">Submit
+            <button name="submit" type="submit">Submit
                 file</button><br><br>
-            <label>File saved successfully!</label>
+            <label>File saved successfully!</label><br><br>
         </form>
     </body>
 </html>
