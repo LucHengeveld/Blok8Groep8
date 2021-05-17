@@ -13,7 +13,7 @@ app = Flask(__name__)
 @app.route('/')
 @app.route('/home.html', methods=["POST", "GET"])
 def get_input():
-    #try:
+    try:
         if request.method == 'POST':
 
             email = request.form.get("email", "")
@@ -131,8 +131,8 @@ def get_input():
                                    email="",
                                    use_co_occurence="",
                                    results="")
-    #except:
-        #return render_template("home_error.html")
+    except:
+        return render_template("home_error.html")
 
 
 def excel_reader(file_name):
