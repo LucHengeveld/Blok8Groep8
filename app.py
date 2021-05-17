@@ -13,7 +13,7 @@ app = Flask(__name__)
 @app.route('/')
 @app.route('/home.html', methods=["POST", "GET"])
 def get_input():
-    try:
+    #try:
         if request.method == 'POST':
 
             email = request.form.get("email", "")
@@ -47,7 +47,7 @@ def get_input():
             print(use_co_occurence)
 
             Entrez.email = email
-            genepanel_file = "C:/Users/luche/Documents/HAN/Leerjaar_2/Informatica Jaar 2/Blok 8/GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
+            genepanel_file = "GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
             gp_table = excel_reader(genepanel_file)
             genes = get_column(gp_table, "GenePanels_Symbol")
             synonyms = get_column(gp_table, "Aliases")
@@ -92,10 +92,20 @@ def get_input():
                 diseasepoints = co_occurrence(results, articlepoints,
                                               abstractpoints, sentencepoints,
                                               titlepoints, 3)
-
+                diseases = []
                 for key, value in results.items():
+                    print(key, value)
+                    diseasesperarticle = []
                     for key2, value2 in diseasepoints.get(key).items():
-                        print(key2, sorted(value2, reverse=True)[:3])
+                        print(key2, value2)
+                        diseasespergene = []
+                        for disease in sorted(value2, reverse=True)[:3]:
+                            diseasespergene.append(disease[1])
+                        diseasesperarticle.append(diseasespergene)
+                    diseases.append(diseasesperarticle)
+                print(diseases)
+
+
                 #print(diseasepoints)
 
             return render_template("homeresults.html",
@@ -121,8 +131,8 @@ def get_input():
                                    email="",
                                    use_co_occurence="",
                                    results="")
-    except:
-        return render_template("home_error.html")
+    #except:
+        #return render_template("home_error.html")
 
 
 def excel_reader(file_name):
