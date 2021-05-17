@@ -47,7 +47,7 @@ def get_input():
             print(use_co_occurence)
 
             Entrez.email = email
-            genepanel_file = "GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
+            genepanel_file = "C:/Users/luche/Documents/HAN/Leerjaar_2/Informatica Jaar 2/Blok 8/GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
             gp_table = excel_reader(genepanel_file)
             genes = get_column(gp_table, "GenePanels_Symbol")
             synonyms = get_column(gp_table, "Aliases")
@@ -92,19 +92,15 @@ def get_input():
                 diseasepoints = co_occurrence(results, articlepoints,
                                               abstractpoints, sentencepoints,
                                               titlepoints, 3)
-                diseases = []
+
                 for key, value in results.items():
-                    print(key, value)
                     diseasesperarticle = []
                     for key2, value2 in diseasepoints.get(key).items():
-                        print(key2, value2)
                         diseasespergene = []
                         for disease in sorted(value2, reverse=True)[:3]:
                             diseasespergene.append(disease[1])
                         diseasesperarticle.append(diseasespergene)
-                    diseases.append(diseasesperarticle)
-                print(diseases)
-
+                    results[key].append(diseasesperarticle)
 
                 #print(diseasepoints)
 
@@ -443,7 +439,7 @@ def read_pubtator_file(pubtator_link, gene_panel_dict, genepanel_filter):
                                         genepanel_filter_lijst.append(genepanel_filter.upper())
                                     for j in genepanel_filter_lijst:
                                         if j in gene_panel_dict.keys():
-                                            if lines[i].split("\t")[3] in gene_panel_dict[j]:
+                                            if lines[i].split("\t")[3].upper() in gene_panel_dict[j]:
                                                 genepanelboolean = True
                                     if genepanelboolean == False:
                                         if gene not in genelist:

@@ -169,7 +169,15 @@
                                         {% endif %}
                                     {% endfor %}
                                 </td>
-                            <td>Mogelijke diseases</td>
+                                <td>
+                                    {% for i in results[key][-1][results[key][2].index(gene)] %}
+                                        {% if i != results[key][-1][results[key][2].index(gene)][-1] %}
+                                            {{ i + "," }}
+                                        {% else %}
+                                            {{ i }}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
                             </tr>
                             {% endfor %}
                     {% endfor %}
