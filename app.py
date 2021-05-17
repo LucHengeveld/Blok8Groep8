@@ -25,7 +25,7 @@ def get_input():
 
             and_filter = request.form.get("and_filter", "")
             not_filter = request.form.get("not_filter", "")
-            genepanel_file = request.form.get("genepanel_file")
+            # genepanel_file = request.form.get("genepanel_file")
             gene_filter = request.form.get("gene_filter", "")
             date_filter = request.form.get("date_filter", "")
             genepanel_filter = request.form.get("genepanel_filter", "")
@@ -41,16 +41,15 @@ def get_input():
             print(or_list)
             print(and_filter)
             print(not_filter)
-            print(genepanel_file)
             print(gene_filter)
             print(date_filter)
             print(genepanel_filter)
             print(use_co_occurence)
 
             Entrez.email = email
-            # genepanel_file = "C:/Users/cvanh/PycharmProjects/Blok8Groep8/GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
-            upload()
-            genepanel_file = upload_genepanel()
+            genepanel_file = "C:/Users/cvanh/PycharmProjects/Blok8Groep8/GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
+            # upload()
+            # genepanel_file = upload_genepanel()
             gp_table = excel_reader(genepanel_file)
             genes = get_column(gp_table, "GenePanels_Symbol")
             synonyms = get_column(gp_table, "Aliases")
@@ -66,14 +65,14 @@ def get_input():
                               gene_filter)
             #print(genes_dict)
             #print(gene_panel_dict)
-            # query = making_query(or_list2, and_filter2, not_filter2,
-            #                      gene_filter2)
-            query = "((ABC transporter [tiab] OR transporter [tiab] OR transport [" \
-                    "tiab]) AND (disease [tiab] OR mutation [tiab] OR mutations [" \
-                    "tiab] OR liver disease [tiab]) AND (lipids [tiab] OR " \
-                    "cholesterol [tiab] OR bile salts [tiab] OR canalicular membrane " \
-                    "[tiab] OR phosphatidylcholine [tiab] OR PC [tiab]) AND (ABCB4 [" \
-                    "tiab] OR ABCB4 deficiency [tiab])) "
+            query = making_query(or_list2, and_filter2, not_filter2,
+                                 gene_filter2)
+            # query = "((ABC transporter [tiab] OR transporter [tiab] OR transport [" \
+            #         "tiab]) AND (disease [tiab] OR mutation [tiab] OR mutations [" \
+            #         "tiab] OR liver disease [tiab]) AND (lipids [tiab] OR " \
+            #         "cholesterol [tiab] OR bile salts [tiab] OR canalicular membrane " \
+            #         "[tiab] OR phosphatidylcholine [tiab] OR PC [tiab]) AND (ABCB4 [" \
+            #         "tiab] OR ABCB4 deficiency [tiab])) "
             id_list = get_pubmed_ids(query, date_filter)
             pubtator_link = get_pubtator_link(id_list)
 

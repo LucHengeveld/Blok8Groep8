@@ -163,7 +163,7 @@
                             <tr>
                                 <td>{{ gene.rsplit(" ", 1)[0] }}</td>
                                 <td>{{ gene.rsplit(" ", 1)[1] }}</td>
-                                <td><a href="{{ results[key][4] }}">{{ key }}</a></td>
+                                <td><a href="{{ results[key][4] }}" target="_blank">{{ key }}</a></td>
                                 <td>{{ results[key][5] }}</td>
                                 <td>{% for i in results[key][6][results[key][2].index(gene)] %}
                                         {% if i != results[key][6][results[key][2].index(gene)][-1] %}
