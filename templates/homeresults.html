@@ -159,10 +159,10 @@
                             <tr>
                                 <td>{{ gene.rsplit(" ", 1)[0] }}</td>
                                 <td>{{ gene.rsplit(" ", 1)[1] }}</td>
-                                <td><a href="{{ results[key][5] }}">{{ key }}</a></td>
-                                <td>{{ results[key][6] }}</td>
-                                <td>{% for i in results[key][7][results[key][2].index(gene)] %}
-                                        {% if i != results[key][7][results[key][2].index(gene)][-1] %}
+                                <td><a href="{{ results[key][4] }}">{{ key }}</a></td>
+                                <td>{{ results[key][5] }}</td>
+                                <td>{% for i in results[key][6][results[key][2].index(gene)] %}
+                                        {% if i != results[key][6][results[key][2].index(gene)][-1] %}
                                             {{ i + "," }}
                                         {% else %}
                                             {{ i }}
@@ -191,10 +191,10 @@
                             <tr>
                                 <td>{{ gene.rsplit(" ", 1)[0] }}</td>
                                 <td>{{ gene.rsplit(" ", 1)[1] }}</td>
-                                <td><a href="{{ results[key][5] }}">{{ key }}</a></td>
-                                <td>{{ results[key][6] }}</td>
-                                <td>{% for i in results[key][7][results[key][2].index(gene)] %}
-                                        {% if i != results[key][7][results[key][2].index(gene)][-1] %}
+                                <td><a href="{{ results[key][4] }}">{{ key }}</a></td>
+                                <td>{{ results[key][5] }}</td>
+                                <td>{% for i in results[key][6][results[key][2].index(gene)] %}
+                                        {% if i != results[key][6][results[key][2].index(gene)][-1] %}
                                             {{ i + "," }}
                                         {% else %}
                                             {{ i }}

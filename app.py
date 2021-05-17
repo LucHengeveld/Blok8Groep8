@@ -4,6 +4,8 @@ import pandas as pd
 from Bio import Entrez, Medline
 import requests
 from datetime import datetime
+import csv
+from xlsxwriter.workbook import Workbook
 
 app = Flask(__name__)
 
@@ -89,12 +91,9 @@ def get_input():
             diseasepoints = co_occurrence(results, articlepoints,
                                           abstractpoints, sentencepoints,
                                           titlepoints, 3)
-            mutationpoints = co_occurrence(results, articlepoints,
-                                           abstractpoints, sentencepoints,
-                                           titlepoints, 4)
             # print(diseasepoints)
-            # print(mutationpoints)
-
+            # ID [Title, abstract, genelist, diseaselist, hyperlink, date, genpanels
+            print(results)
             return render_template("homeresults.html",
                                    or_list=or_list,
                                    and_filter=and_filter,
@@ -362,16 +361,16 @@ def get_pubmed_ids(query, date_filter):
 
 def get_pubtator_link(id_list):
     """This function uses the id's from the id_list to create a
-    pubtator link which filters the genes, mutations and diseases out
+    pubtator link which filters the genes and diseases out
     of the title and abstract.
 
     :param id_list: List with all found pubmed id's.
-    :return pubtator_link: Pubtator link with the title, abstact, genes,
-    diseases and mutations of each article.
+    :return pubtator_link: Pubtator link with the title, abstact, genes
+    and diseases of each article.
     """
     # Standard pubtator link format:
     link = "https://www.ncbi.nlm.nih.gov/research/pubtator-api/publications" \
-           "/export/pubtator?pmids=idvalues&concepts=gene,mutation,disease"
+           "/export/pubtator?pmids=idvalues&concepts=gene,disease"
 
     # Creates a string with all the ID's. Separated by a comma.
     id_string = ""
@@ -387,13 +386,12 @@ def get_pubtator_link(id_list):
 
 def read_pubtator_file(pubtator_link, gene_panel_dict, genepanel_filter):
     """This function reads the pubtator link as a text file and
-    retrieves the genes, diseases and mutations out of each article.
+    retrieves the title, abstract, genes and diseases out of each article.
 
-    :param pubtator_link: Pubtator link with the title, abstact, genes,
-    diseases and mutations of each article.
+    :param pubtator_link: Pubtator link with the title, abstact, genes
+    and diseases of each article.
     :return results: Dictionary with as key the article ID and as value
-    a list with the structure [title, abstract, genelist, diseaselist,
-    mutationlist]
+    a list with the structure [title, abstract, genelist, diseaselist]
     """
     # Retrieves the pubtator link with the article ID's in text format
     pubtator_text = requests.get(pubtator_link).text
@@ -401,12 +399,11 @@ def read_pubtator_file(pubtator_link, gene_panel_dict, genepanel_filter):
     # Splits the text in lines.
     lines = pubtator_text.split("\n")
 
-    # Checks if the line is the title, the abstract, a gene, a disease,
-    # a mutation and adds the information to lists.
+    # Checks if the line is the title, the abstract, a gene, a disease
+    # and adds the information to lists.
     results = {}
     genelist = []
     diseaselist = []
-    mutationlist = []
     genepanel_filter_lijst = []
     for i in range(len(lines)):
         if "|t|" in lines[i]:
@@ -444,22 +441,14 @@ def read_pubtator_file(pubtator_link, gene_panel_dict, genepanel_filter):
                               lines[i].split("\t")[-1]
                     if disease not in diseaselist:
                         diseaselist.append(disease)
-                elif "Mutation" in lines[i]:
-                    mutation = lines[i].split("\t")[3] + " " + \
-                               lines[i].split("\t")[-1]
-                    if mutation not in mutationlist:
-                        mutationlist.append(mutation)
 
         # if the line is empty, which means its the end of an article,
-        # it will add the title, abstract, genelist, diseaselist and
-        # mutationlist to the results dictionary.
+        # it will add the title, abstract, genelist and diseaselist to the results dictionary.
         else:
             if genelist:
-                results[article_id] = [title, abstract, genelist, diseaselist,
-                                       mutationlist]
+                results[article_id] = [title, abstract, genelist, diseaselist]
                 genelist = []
                 diseaselist = []
-                mutationlist = []
 
     return results
 
@@ -470,11 +459,10 @@ def pubmed_hyperlink(results):
     hyperlink will be added to the values of each key.
 
     :param results: Dictionary with as key the article ID and as value
-    a list with the structure [title, abstract, genelist, diseaselist,
-    mutationlist]
+    a list with the structure [title, abstract, genelist, diseaselist]
     :return results: Dictionary with as key the article ID and as value
     a list with the structure [title, abstract, genelist, diseaselist,
-    mutationlist, hyperlink]
+    hyperlink]
     """
     # Standard pubmed hyperlink
     standard_hyperlink = "https://pubmed.ncbi.nlm.nih.gov/id/"
@@ -495,10 +483,10 @@ def publication_date(results):
 
     :param results: Dictionary with as key the article ID and as value
     a list with the structure [title, abstract, genelist, diseaselist,
-    mutationlist, hyperlink]
+    hyperlink]
     :return results: Dictionary with as key the article ID and as value
     a list with the structure [title, abstract, genelist, diseaselist,
-    mutationlist, hyperlink, publication date]
+    hyperlink, publication date]
     """
     # Adds all ID's to a string, separated by a comma.
     id_string = ""
@@ -524,21 +512,20 @@ def publication_date(results):
 def co_occurrence(results, articlepoints, abstractpoints, sentencepoints,
                   titlepoints, pos):
     """This function gives points to every combination of genes and
-    diseases/mutations in the PubMed articles (title and/or abstract).
+    diseases in the PubMed articles (title and/or abstract).
     :param results: Dictionary with as key the article ID and as value
     a list with the structure [title, abstract, genelist, diseaselist,
-    mutationlist, hyperlink]
+     hyperlink]
     :param articlepoints: The amount of points for a gene and
-    disease/mutation in the same article
+    disease in the same article
     :param abstractpoints: The amount of points for a gene and
-    disease/mutation in the same abstract
+    disease in the same abstract
     :param sentencepoints: The amount of points for a gene and
-    disease/mutation in the same sentence
+    disease in the same sentence
     :param titlepoints: The amount of points for a gene and
-    disease/mutation in the same title
-    :param pos: The position in the results dictionary. 3 = disease,
-    4 = mutation
-    :return: The list with all the points per gene and disease/mutation
+    disease in the same title
+    :param pos: The position in the results dictionary. 3 = disease
+    :return: The list with all the points per gene and disease
     combination per article
     """
     points = []
@@ -552,24 +539,24 @@ def co_occurrence(results, articlepoints, abstractpoints, sentencepoints,
                 value = value.rsplit(" ", 1)[0]
                 count = 0
 
-                # If gene and disease/mutation are in the same article,
+                # If gene and disease are in the same article,
                 # but not in the title or abstract
                 if gene in results[key][0] and value in results[key][1] \
                         or gene in results[key][1] and value in \
                         results[key][0]:
                     count += articlepoints
 
-                # If gene and disease/mutation are both in the abstract
+                # If gene and disease are both in the abstract
                 if gene in results[key][1] and value in results[key][1]:
                     count += abstractpoints
 
-                # If gene and disease/mutation are both in the same line
+                # If gene and disease are both in the same line
                 # of the abstract
                 for line in results[key][1].split(". "):
                     if gene in line and value in line:
                         count += sentencepoints
 
-                # If gene and disease/mutation are both in the title
+                # If gene and disease are both in the title
                 if gene in results[key][0] and value in results[key][0]:
                     count += titlepoints
 
@@ -594,7 +581,7 @@ def genepanel_results(results, genes_dict):
 
 
 @app.route('/homeresults.html', methods=["POST"])
-def save_results():
+def save_results(results):
     try:
         selected_extension = request.form["file_extension"]
     except:
@@ -607,28 +594,28 @@ def save_results():
     else:
         output_file = "results.tsv"
 
-    # with open(output_file, 'w', newline='') as out_file:
-    #     tsv_writer = csv.writer(out_file, delimiter='\t')
-    #     tsv_writer.writerow(["Gene name", "Gene ID", "Gene Panels", "Pubmed ID", "Pubmed Hyperlink", "Publication Date"])
-    #     for key in results:
-    #         for gene in results[key][2]:
-    #             genepanelstring = ""
-    #             for i in results[key][7][results[key][2].index(gene)]:
-    #                 if i != results[key][7][results[key][2].index(gene)][-1]:
-    #                     genepanelstring += i + ";"
-    #                 else:
-    #                     genepanelstring += i
-    #             tsv_writer.writerow([gene.rsplit(" ", 1)[0], gene.rsplit(" ", 1)[1], genepanelstring, key, results[key][5], results[key][6]])
-    # out_file.close()
-    #
-    # if selected_extension == "xlsx":
-    #     xlsx_file = 'results.xlsx'
-    #     workbook = Workbook(xlsx_file, {'strings_to_numbers': True})
-    #     worksheet = workbook.add_worksheet()
-    #     tsv_reader = csv.reader(open(output_file, 'rt'), delimiter='\t')
-    #     for row, data in enumerate(tsv_reader):
-    #         worksheet.write_row(row, 0, data)
-    #     workbook.close()
+    with open(output_file, 'w', newline='') as out_file:
+        tsv_writer = csv.writer(out_file, delimiter='\t')
+        tsv_writer.writerow(["Gene name", "Gene ID", "Gene Panels", "Pubmed ID", "Pubmed Hyperlink", "Publication Date"])
+        for key in results:
+            for gene in results[key][2]:
+                genepanelstring = ""
+                for i in results[key][7][results[key][2].index(gene)]:
+                    if i != results[key][7][results[key][2].index(gene)][-1]:
+                        genepanelstring += i + ";"
+                    else:
+                        genepanelstring += i
+                tsv_writer.writerow([gene.rsplit(" ", 1)[0], gene.rsplit(" ", 1)[1], genepanelstring, key, results[key][5], results[key][6]])
+    out_file.close()
+
+    if selected_extension == "xlsx":
+        xlsx_file = 'results.xlsx'
+        workbook = Workbook(xlsx_file, {'strings_to_numbers': True})
+        worksheet = workbook.add_worksheet()
+        tsv_reader = csv.reader(open(output_file, 'rt'), delimiter='\t')
+        for row, data in enumerate(tsv_reader):
+            worksheet.write_row(row, 0, data)
+        workbook.close()
     
     return render_template("home.html")
 
