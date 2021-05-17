@@ -128,7 +128,33 @@ def get_input():
                                    use_co_occurence="",
                                    results="")
     except:
-        return render_template("home_error.html")
+
+        email = request.form.get("email", "")
+        or_filter = request.form.get("or_filter", "")
+        or_list = request.form.getlist('or_list')
+        or_list.insert(0, or_filter)
+        and_filter = request.form.get("and_filter", "")
+        not_filter = request.form.get("not_filter", "")
+        genepanel_file = request.form.get("genepanel_file")
+        gene_filter = request.form.get("gene_filter", "")
+        date_filter = request.form.get("date_filter", "")
+        genepanel_filter = request.form.get("genepanel_filter", "")
+        try:
+            use_co_occurence = request.form["occurence"]
+            print(use_co_occurence)
+        except:
+            use_co_occurence = "Not selected"
+
+        return render_template("home_error.html",
+                               or_list=or_list,
+                               and_filter=and_filter,
+                               not_filter=not_filter,
+                               gene_filter=gene_filter,
+                               date_filter=date_filter,
+                               genepanel_file=genepanel_file,
+                               genepanel_filter=genepanel_filter,
+                               email=email,
+                               use_co_occurence=use_co_occurence)
 
 
 def excel_reader(file_name):

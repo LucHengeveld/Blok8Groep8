@@ -78,7 +78,59 @@
                 <input type="radio" name="occurence" value="No">No<br><br>
                 <button name="search" type="submit">Search for PubMed articles</button>
             </form>
+
             <br><hr>
+
+            <h2>Entered search keywords:</h2>
+
+            <label>
+                <b>OR filter:</b><br>
+                {% for input in or_list %}
+                    {{ input }}<br>
+                {% endfor %}
+            </label><br>
+
+            <label>
+                <b>AND filter:</b><br>
+                {{ and_filter }}
+            </label><br><br>
+
+            <label>
+                <b>NOT filter:</b><br>
+                {{ not_filter }}
+            </label><br><br>
+
+            <label>
+                <b>Gene filter:</b><br>
+                {{ gene_filter }}
+            </label><br><br>
+
+            <label>
+                <b>Date filter (year-month-day):</b><br>
+                {{ date_filter }}
+            </label><br><br>
+
+            <label>
+                <b>Genepanel file:</b><br>
+                {{ genepanel_file }}
+            </label><br><br>
+
+            <label>
+                <b>Genepanel filter:</b><br>
+                {{ genepanel_filter }}
+            </label><br><br>
+
+            <label>
+                <b>E-mail:</b><br>
+                {{ email }}
+            </label><br><br>
+
+            <label>
+                <b>Use co-occurence to calculate possible diseases:</b><br>
+                {{ use_co_occurence }}
+            </label>
+
+            <br><br><hr>
 
              <h2>Search results:</h2>
             <label>No results found. Please check the info page.</label>
