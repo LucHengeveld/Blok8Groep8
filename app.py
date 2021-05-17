@@ -61,8 +61,8 @@ def get_input():
             or_list2, and_filter2, not_filter2, gene_filter2 = \
                 retrieve_data(or_list, and_filter, not_filter,
                               gene_filter)
-            print(genes_dict)
-            print(gene_panel_dict)
+            #print(genes_dict)
+            #print(gene_panel_dict)
             query = making_query(or_list2, and_filter2, not_filter2,
                                  gene_filter2)
             query = "((ABC transporter [tiab] OR transporter [tiab] OR transport [" \
@@ -84,16 +84,20 @@ def get_input():
             # Zal co occurence diseases wel toevoegen aan html pagina
             # als het je lukt om het toe te voegen aan de results dictionary
             # structuur als het kan: [[gen1 disease1, gen1 disease2, enz][gen2 disease1, gen2 disease2, enz]]
-            titlepoints = 10
-            sentencepoints = 5
-            abstractpoints = 3
-            articlepoints = 1
-            diseasepoints = co_occurrence(results, articlepoints,
-                                          abstractpoints, sentencepoints,
-                                          titlepoints, 3)
-            # print(diseasepoints)
-            # ID [Title, abstract, genelist, diseaselist, hyperlink, date, genpanels
-            print(results)
+            if use_co_occurence == "Yes":
+                titlepoints = 10
+                sentencepoints = 5
+                abstractpoints = 3
+                articlepoints = 1
+                diseasepoints = co_occurrence(results, articlepoints,
+                                              abstractpoints, sentencepoints,
+                                              titlepoints, 3)
+
+                for key, value in results.items():
+                    for key2, value2 in diseasepoints.get(key).items():
+                        print(key2, sorted(value2, reverse=True)[:3])
+                #print(diseasepoints)
+
             return render_template("homeresults.html",
                                    or_list=or_list,
                                    and_filter=and_filter,
@@ -528,15 +532,16 @@ def co_occurrence(results, articlepoints, abstractpoints, sentencepoints,
     :return: The list with all the points per gene and disease
     combination per article
     """
-    points = []
+    points = {}
     for key in results:
-        pointsperid = []
+        pointsperid = {}
         for gene in results[key][2]:
             gene = gene.rsplit(" ", 1)[0]
             pointspergene = []
-            pointspergenedict = {}
+            valuespergene = []
             for value in results[key][pos]:
                 value = value.rsplit(" ", 1)[0]
+                valuespergene.append(value)
                 count = 0
 
                 # If gene and disease are in the same article,
@@ -561,9 +566,8 @@ def co_occurrence(results, articlepoints, abstractpoints, sentencepoints,
                     count += titlepoints
 
                 pointspergene.append(count)
-            pointspergenedict[gene] = pointspergene
-            pointsperid.append(pointspergenedict)
-        points.append(pointsperid)
+            pointsperid[gene] = zip(pointspergene, valuespergene)
+        points[key] = pointsperid
     return points
 
 
@@ -594,28 +598,28 @@ def save_results(results):
     else:
         output_file = "results.tsv"
 
-    with open(output_file, 'w', newline='') as out_file:
-        tsv_writer = csv.writer(out_file, delimiter='\t')
-        tsv_writer.writerow(["Gene name", "Gene ID", "Gene Panels", "Pubmed ID", "Pubmed Hyperlink", "Publication Date"])
-        for key in results:
-            for gene in results[key][2]:
-                genepanelstring = ""
-                for i in results[key][7][results[key][2].index(gene)]:
-                    if i != results[key][7][results[key][2].index(gene)][-1]:
-                        genepanelstring += i + ";"
-                    else:
-                        genepanelstring += i
-                tsv_writer.writerow([gene.rsplit(" ", 1)[0], gene.rsplit(" ", 1)[1], genepanelstring, key, results[key][5], results[key][6]])
-    out_file.close()
-
-    if selected_extension == "xlsx":
-        xlsx_file = 'results.xlsx'
-        workbook = Workbook(xlsx_file, {'strings_to_numbers': True})
-        worksheet = workbook.add_worksheet()
-        tsv_reader = csv.reader(open(output_file, 'rt'), delimiter='\t')
-        for row, data in enumerate(tsv_reader):
-            worksheet.write_row(row, 0, data)
-        workbook.close()
+    # with open(output_file, 'w', newline='') as out_file:
+    #     tsv_writer = csv.writer(out_file, delimiter='\t')
+    #     tsv_writer.writerow(["Gene name", "Gene ID", "Gene Panels", "Pubmed ID", "Pubmed Hyperlink", "Publication Date"])
+    #     for key in results:
+    #         for gene in results[key][2]:
+    #             genepanelstring = ""
+    #             for i in results[key][7][results[key][2].index(gene)]:
+    #                 if i != results[key][7][results[key][2].index(gene)][-1]:
+    #                     genepanelstring += i + ";"
+    #                 else:
+    #                     genepanelstring += i
+    #             tsv_writer.writerow([gene.rsplit(" ", 1)[0], gene.rsplit(" ", 1)[1], genepanelstring, key, results[key][5], results[key][6]])
+    # out_file.close()
+    #
+    # if selected_extension == "xlsx":
+    #     xlsx_file = 'results.xlsx'
+    #     workbook = Workbook(xlsx_file, {'strings_to_numbers': True})
+    #     worksheet = workbook.add_worksheet()
+    #     tsv_reader = csv.reader(open(output_file, 'rt'), delimiter='\t')
+    #     for row, data in enumerate(tsv_reader):
+    #         worksheet.write_row(row, 0, data)
+    #     workbook.close()
     
     return render_template("home.html")
 
