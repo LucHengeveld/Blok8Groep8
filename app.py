@@ -4,6 +4,7 @@ import pandas as pd
 from Bio import Entrez, Medline
 import requests
 from datetime import datetime
+from werkzeug.utils import secure_filename
 import csv
 from xlsxwriter.workbook import Workbook
 
@@ -47,7 +48,9 @@ def get_input():
             print(use_co_occurence)
 
             Entrez.email = email
-            genepanel_file = "C:/Users/luche/Documents/HAN/Leerjaar_2/Informatica Jaar 2/Blok 8/GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
+            # genepanel_file = "C:/Users/cvanh/PycharmProjects/Blok8Groep8/GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
+            upload()
+            genepanel_file = upload_genepanel()
             gp_table = excel_reader(genepanel_file)
             genes = get_column(gp_table, "GenePanels_Symbol")
             synonyms = get_column(gp_table, "Aliases")
@@ -63,8 +66,8 @@ def get_input():
                               gene_filter)
             #print(genes_dict)
             #print(gene_panel_dict)
-            query = making_query(or_list2, and_filter2, not_filter2,
-                                 gene_filter2)
+            # query = making_query(or_list2, and_filter2, not_filter2,
+            #                      gene_filter2)
             query = "((ABC transporter [tiab] OR transporter [tiab] OR transport [" \
                     "tiab]) AND (disease [tiab] OR mutation [tiab] OR mutations [" \
                     "tiab] OR liver disease [tiab]) AND (lipids [tiab] OR " \
@@ -155,6 +158,19 @@ def get_input():
                                genepanel_filter=genepanel_filter,
                                email=email,
                                use_co_occurence=use_co_occurence)
+
+
+@app.route('/upload.html')
+def upload():
+    return render_template('upload.html')
+
+
+@app.route('/upload_genepanel.html', methods=['POST', 'GET'])
+def upload_genepanel():
+    # if request.method == 'POST':
+    #     genepanel_file = request.files["genepanel_file"]
+    #     genepanel_file.save(secure_filename(genepanel_file.filename))
+    return render_template('upload_genepanel.html')
 
 
 def excel_reader(file_name):
