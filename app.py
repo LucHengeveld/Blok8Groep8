@@ -47,9 +47,9 @@ def get_input():
             print(use_co_occurence)
 
             Entrez.email = email
-            genepanel_file = "C:/Users/cvanh/PycharmProjects/Blok8Groep8/GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
-            # upload()
-            # genepanel_file = upload_genepanel()
+            # genepanel_file = "C:/Users/cvanh/PycharmProjects/Blok8Groep8/GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
+            upload()
+            genepanel_file = upload_genepanel()
             gp_table = excel_reader(genepanel_file)
             genes = get_column(gp_table, "GenePanels_Symbol")
             synonyms = get_column(gp_table, "Aliases")
@@ -65,14 +65,14 @@ def get_input():
                               gene_filter)
             #print(genes_dict)
             #print(gene_panel_dict)
-            query = making_query(or_list2, and_filter2, not_filter2,
-                                 gene_filter2)
-            # query = "((ABC transporter [tiab] OR transporter [tiab] OR transport [" \
-            #         "tiab]) AND (disease [tiab] OR mutation [tiab] OR mutations [" \
-            #         "tiab] OR liver disease [tiab]) AND (lipids [tiab] OR " \
-            #         "cholesterol [tiab] OR bile salts [tiab] OR canalicular membrane " \
-            #         "[tiab] OR phosphatidylcholine [tiab] OR PC [tiab]) AND (ABCB4 [" \
-            #         "tiab] OR ABCB4 deficiency [tiab])) "
+            # query = making_query(or_list2, and_filter2, not_filter2,
+            #                      gene_filter2)
+            query = "((ABC transporter [tiab] OR transporter [tiab] OR transport [" \
+                    "tiab]) AND (disease [tiab] OR mutation [tiab] OR mutations [" \
+                    "tiab] OR liver disease [tiab]) AND (lipids [tiab] OR " \
+                    "cholesterol [tiab] OR bile salts [tiab] OR canalicular membrane " \
+                    "[tiab] OR phosphatidylcholine [tiab] OR PC [tiab]) AND (ABCB4 [" \
+                    "tiab] OR ABCB4 deficiency [tiab])) "
             id_list = get_pubmed_ids(query, date_filter)
             pubtator_link = get_pubtator_link(id_list)
 
@@ -161,6 +161,8 @@ def get_input():
 
 @app.route('/upload.html')
 def upload():
+    genepanel_file = request.args.get('genepanel_file')
+    print(genepanel_file)
     return render_template('upload.html')
 
 
