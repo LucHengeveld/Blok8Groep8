@@ -9,7 +9,6 @@
     <body>
         <ul>
             <li><a class="active" href="home.html">Home</a></li>
-            <li><a href="upload.html">Upload</a></li>
             <li><a href="info.html">Info</a></li>
         </ul>
 
@@ -57,13 +56,9 @@
                     <input type="date" name="date_filter" />
                 </label><br><br>
 
-                <label>Upload a genepanel Excel at the Upload
-                    page.</label><br><br>
-
-{#                 <label>#}
-{#                    Enter the genepanel Excel file below:<br>#}
-{#                    <input type="file" name="genepanel_file" accept=".xlsx" size="50"/>#}
-{#                </label><br><br>#}
+                <label>
+                    Enter the genepanel Excel file below:<br>
+                    <input type="file" name="genepanel_file" accept=".xlsx" size="50"/></label><br><br>
 
                 <label>
                     Please enter the gene panel selection you would
@@ -116,7 +111,7 @@
 
             <label>
                 <b>Genepanel file:</b><br>
-                {{ genepanel_file }}
+                {{ genepanel_file_name }}
             </label><br><br>
 
             <label>
@@ -137,7 +132,7 @@
             <br><br><hr>
 
             <h2>Search results:</h2>
-            <form action="{{ url_for("save_results") }}" method="POST">
+            <form action="{{ url_for("save_results", results=results) }}" method="POST">
                 <label>
                     Enter the file extension you would like to use to save the file:<br>
                     <input type="radio" name="file_extension" value="tsv"> .tsv (Tab seperated file) <br>

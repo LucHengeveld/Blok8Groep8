@@ -9,7 +9,6 @@
     <body>
         <ul>
             <li><a class="active" href="home.html">Home</a></li>
-            <li><a href="upload.html">Upload</a></li>
             <li><a href="info.html">Info</a></li>
         </ul>
 
@@ -31,10 +30,11 @@
             <button id="Add">Click to add more OR input fields</button>
             <button id="Remove">Click to remove the last OR input field</button><br><br>
 
-            <form action="{{ url_for("get_input") }}" method="POST">
+            <form action="{{ url_for("get_input") }}" method="POST" enctype="multipart/form-data">
                 <label>
                     <input type="text" name="or_filter" size="50"/>
                 </label>
+
                 <div id="textboxDiv"></div>
                 <br>
                 <label>
@@ -57,12 +57,10 @@
                     <input type="date" name="date_filter" />
                 </label><br><br>
 
-                <label>Upload a genepanel Excel at the Upload
-                    page.</label><br><br>
-{#                 <label>#}
-{#                    Enter the genepanel Excel file below:<br>#}
-{#                    <input type="file" name="genepanel_file" accept=".xlsx" size="50"/>#}
-{#                </label><br><br>#}
+                 <label>
+                    Enter the genepanel Excel file below:<br>
+                    <input type="file" name="genepanel_file" accept=".xlsx" size="50"/>
+                </label><br><br>
 
                 <label>
                     Please enter the gene panel selection you would

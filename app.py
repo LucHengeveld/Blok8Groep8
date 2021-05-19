@@ -1,5 +1,5 @@
 import re
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_file
 import pandas as pd
 from Bio import Entrez, Medline
 import requests
@@ -7,6 +7,8 @@ from datetime import datetime
 from werkzeug.utils import secure_filename
 import csv
 from xlsxwriter.workbook import Workbook
+import json
+import ast
 
 app = Flask(__name__)
 
@@ -14,25 +16,31 @@ app = Flask(__name__)
 @app.route('/')
 @app.route('/home.html', methods=["POST", "GET"])
 def get_input():
-    try:
-        if request.method == 'POST':
-
-            email = request.form.get("email", "")
-
-            or_filter = request.form.get("or_filter", "")
+    if request.method == 'POST':
+        try:
+            or_filter = request.form["or_filter"]
             or_list = request.form.getlist('or_list')
             or_list.insert(0, or_filter)
 
-            and_filter = request.form.get("and_filter", "")
-            not_filter = request.form.get("not_filter", "")
-            # genepanel_file = request.form.get("genepanel_file")
-            gene_filter = request.form.get("gene_filter", "")
-            date_filter = request.form.get("date_filter", "")
-            genepanel_filter = request.form.get("genepanel_filter", "")
+            and_filter = request.form["and_filter"]
+            not_filter = request.form["not_filter"]
+            gene_filter = request.form["gene_filter"]
+            date_filter = request.form["date_filter"]
+
+            try:
+                genepanel_file = request.files["genepanel_file"]
+                genepanel_file_name = genepanel_file.filename
+                genepanel_file.save(genepanel_file_name)
+            except:
+                genepanel_file = ""
+                genepanel_file_name = "No file selected."
+
+            genepanel_filter = request.form["genepanel_filter"]
+
+            email = request.form["email"]
 
             try:
                 use_co_occurence = request.form["occurence"]
-                print(use_co_occurence)
             except:
                 use_co_occurence = "Not selected"
 
@@ -41,30 +49,35 @@ def get_input():
             print(or_list)
             print(and_filter)
             print(not_filter)
+            print(genepanel_file_name)
             print(gene_filter)
             print(date_filter)
             print(genepanel_filter)
             print(use_co_occurence)
 
-            Entrez.email = email
-            # genepanel_file = "C:/Users/cvanh/PycharmProjects/Blok8Groep8/GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
-            upload()
-            genepanel_file = upload_genepanel()
-            gp_table = excel_reader(genepanel_file)
-            genes = get_column(gp_table, "GenePanels_Symbol")
-            synonyms = get_column(gp_table, "Aliases")
-            gene_panels_list = get_column(gp_table, "GenePanel")
-            gps_list, gps_set = make_genepanel_list_set(
-                gene_panels_list)
-            genes_dict = make_gene_dict(genes, gps_list)
-            gene_panel_dict = make_gene_panel_dict(gps_set, genes_dict)
-            genes_dict, gene_panel_dict = gene_synonyms(synonyms, gps_list, genes_dict, gene_panel_dict)
+            # genepanel_file = "C:/Users/luche/Documents/HAN/Leerjaar_2/Informatica Jaar 2/Blok 8/GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
 
-            or_list2, and_filter2, not_filter2, gene_filter2 = \
-                retrieve_data(or_list, and_filter, not_filter,
-                              gene_filter)
-            #print(genes_dict)
-            #print(gene_panel_dict)
+            Entrez.email = email
+
+            if genepanel_file:
+                gp_table = excel_reader(genepanel_file)
+                genes = get_column(gp_table, "GenePanels_Symbol")
+                synonyms = get_column(gp_table, "Aliases")
+                gene_panels_list = get_column(gp_table, "GenePanel")
+                gps_list, gps_set = make_genepanel_list_set(
+                    gene_panels_list)
+                genes_dict = make_gene_dict(genes, gps_list)
+                gene_panel_dict = make_gene_panel_dict(gps_set, genes_dict)
+                genes_dict, gene_panel_dict = gene_synonyms(synonyms, gps_list,
+                                                            genes_dict,
+                                                            gene_panel_dict)
+            else:
+                gene_panel_dict = {}
+                genes_dict = {}
+
+            or_list2, and_filter2, not_filter2, gene_filter2 = retrieve_data(
+                or_list, and_filter, not_filter, gene_filter)
+
             # query = making_query(or_list2, and_filter2, not_filter2,
             #                      gene_filter2)
             query = "((ABC transporter [tiab] OR transporter [tiab] OR transport [" \
@@ -82,10 +95,6 @@ def get_input():
             results = publication_date(results)
             results = genepanel_results(results, genes_dict)
 
-            # todo co-occurrence module
-            # Zal co occurence diseases wel toevoegen aan html pagina
-            # als het je lukt om het toe te voegen aan de results dictionary
-            # structuur als het kan: [[gen1 disease1, gen1 disease2, enz][gen2 disease1, gen2 disease2, enz]]
             if use_co_occurence == "Yes":
                 titlepoints = 10
                 sentencepoints = 5
@@ -104,74 +113,67 @@ def get_input():
                         diseasesperarticle.append(diseasespergene)
                     results[key].append(diseasesperarticle)
 
-                #print(diseasepoints)
-
             return render_template("homeresults.html",
                                    or_list=or_list,
                                    and_filter=and_filter,
                                    not_filter=not_filter,
                                    gene_filter=gene_filter,
                                    date_filter=date_filter,
-                                   genepanel_file=genepanel_file,
+                                   genepanel_file_name=genepanel_file_name,
                                    genepanel_filter=genepanel_filter,
                                    email=email,
                                    use_co_occurence=use_co_occurence,
                                    results=results)
-        else:
-            return render_template("home.html",
-                                   or_list="",
-                                   and_filter="",
-                                   not_filter="",
-                                   gene_filter="",
-                                   date_filter="",
-                                   genepanel_file="",
-                                   genepanel_filter="",
-                                   email="",
-                                   use_co_occurence="",
-                                   results="")
-    except:
-
-        email = request.form.get("email", "")
-        or_filter = request.form.get("or_filter", "")
-        or_list = request.form.getlist('or_list')
-        or_list.insert(0, or_filter)
-        and_filter = request.form.get("and_filter", "")
-        not_filter = request.form.get("not_filter", "")
-        genepanel_file = request.form.get("genepanel_file")
-        gene_filter = request.form.get("gene_filter", "")
-        date_filter = request.form.get("date_filter", "")
-        genepanel_filter = request.form.get("genepanel_filter", "")
-        try:
-            use_co_occurence = request.form["occurence"]
-            print(use_co_occurence)
         except:
-            use_co_occurence = "Not selected"
+            or_filter = request.form["or_filter"]
+            or_list = request.form.getlist('or_list')
+            or_list.insert(0, or_filter)
 
-        return render_template("home_error.html",
-                               or_list=or_list,
-                               and_filter=and_filter,
-                               not_filter=not_filter,
-                               gene_filter=gene_filter,
-                               date_filter=date_filter,
-                               genepanel_file=genepanel_file,
-                               genepanel_filter=genepanel_filter,
-                               email=email,
-                               use_co_occurence=use_co_occurence)
+            and_filter = request.form["and_filter"]
+            not_filter = request.form["not_filter"]
+            gene_filter = request.form["gene_filter"]
+            date_filter = request.form["date_filter"]
 
+            try:
+                genepanel_file = request.files["genepanel_file"]
+                genepanel_file_name = genepanel_file.filename
+                genepanel_file.save(genepanel_file_name)
+            except:
+                genepanel_file = ""
+                genepanel_file_name = "No file selected."
 
-@app.route('/upload.html')
-def upload():
-    genepanel_file = request.args.get('genepanel_file')
-    print(genepanel_file)
-    return render_template('upload.html')
+            genepanel_filter = request.form["genepanel_filter"]
 
+            email = request.form["email"]
 
-@app.route('/upload_genepanel.html', methods=['POST', 'GET'])
-def upload_genepanel():
-    # if request.method == 'POST':
-    #     genepanel_file = request.files["genepanel_file"]
-    #     genepanel_file.save(secure_filename(genepanel_file.filename))
-    return render_template('upload_genepanel.html')
+            try:
+                use_co_occurence = request.form["occurence"]
+            except:
+                use_co_occurence = "Not selected"
+
+            return render_template("home_error.html",
+                                   or_list=or_list,
+                                   and_filter=and_filter,
+                                   not_filter=not_filter,
+                                   gene_filter=gene_filter,
+                                   date_filter=date_filter,
+                                   genepanel_file_name=genepanel_file_name,
+                                   genepanel_filter=genepanel_filter,
+                                   email=email,
+                                   use_co_occurence=use_co_occurence)
+
+    else:
+        return render_template("home.html",
+                               or_list="",
+                               and_filter="",
+                               not_filter="",
+                               gene_filter="",
+                               date_filter="",
+                               genepanel_file_name="",
+                               genepanel_filter="",
+                               email="",
+                               use_co_occurence="",
+                               results="")
 
 
 def excel_reader(file_name):
@@ -476,13 +478,18 @@ def read_pubtator_file(pubtator_link, gene_panel_dict, genepanel_filter):
                             if gene not in genelist:
                                 if genepanel_filter != "":
                                     genepanelboolean = False
-                                    if "," in genepanel_filter.replace(" ", ""):
-                                        genepanel_filter_lijst = genepanel_filter.upper().replace(" ", "").split(",")
+                                    if "," in genepanel_filter.replace(" ",
+                                                                       ""):
+                                        genepanel_filter_lijst = genepanel_filter.upper().replace(
+                                            " ", "").split(",")
                                     else:
-                                        genepanel_filter_lijst.append(genepanel_filter.upper())
+                                        genepanel_filter_lijst.append(
+                                            genepanel_filter.upper())
                                     for j in genepanel_filter_lijst:
                                         if j in gene_panel_dict.keys():
-                                            if lines[i].split("\t")[3].upper() in gene_panel_dict[j]:
+                                            if lines[i].split("\t")[
+                                                3].upper() in gene_panel_dict[
+                                                j]:
                                                 genepanelboolean = True
                                     if genepanelboolean == False:
                                         if gene not in genelist:
@@ -634,42 +641,61 @@ def genepanel_results(results, genes_dict):
 
 
 @app.route('/homeresults.html', methods=["POST"])
-def save_results(results):
+def save_results():
+    results = request.args.get('results')
+    results = ast.literal_eval(results)
+    for key in results:
+        print(results[key])
+
     try:
         selected_extension = request.form["file_extension"]
     except:
         selected_extension = "tsv"
 
     print(selected_extension)
-    
+
     if selected_extension == "txt":
         output_file = "results.txt"
     else:
         output_file = "results.tsv"
 
-    # with open(output_file, 'w', newline='') as out_file:
-    #     tsv_writer = csv.writer(out_file, delimiter='\t')
-    #     tsv_writer.writerow(["Gene name", "Gene ID", "Gene Panels", "Pubmed ID", "Pubmed Hyperlink", "Publication Date"])
-    #     for key in results:
-    #         for gene in results[key][2]:
-    #             genepanelstring = ""
-    #             for i in results[key][7][results[key][2].index(gene)]:
-    #                 if i != results[key][7][results[key][2].index(gene)][-1]:
-    #                     genepanelstring += i + ";"
-    #                 else:
-    #                     genepanelstring += i
-    #             tsv_writer.writerow([gene.rsplit(" ", 1)[0], gene.rsplit(" ", 1)[1], genepanelstring, key, results[key][5], results[key][6]])
-    # out_file.close()
-    #
-    # if selected_extension == "xlsx":
-    #     xlsx_file = 'results.xlsx'
-    #     workbook = Workbook(xlsx_file, {'strings_to_numbers': True})
-    #     worksheet = workbook.add_worksheet()
-    #     tsv_reader = csv.reader(open(output_file, 'rt'), delimiter='\t')
-    #     for row, data in enumerate(tsv_reader):
-    #         worksheet.write_row(row, 0, data)
-    #     workbook.close()
-    
+    with open(output_file, 'w', newline='') as out_file:
+        tsv_writer = csv.writer(out_file, delimiter='\t')
+        tsv_writer.writerow(
+            ["Gene name", "Gene ID", "Gene Panels", "Pubmed ID",
+             "Pubmed Hyperlink", "Publication Date"])
+        for pubmed_id in results:
+            for gene_index in range(len(results[pubmed_id][2])):
+                gene_name = results[pubmed_id][2][gene_index].rsplit(" ", 1)[0]
+                gene_id = results[pubmed_id][2][gene_index].rsplit(" ", 1)[1]
+                genepanelstring = ""
+                genepanels = results[pubmed_id][6][gene_index]
+                for i in genepanels:
+                    genepanelstring += i + ";"
+                genepanelstring = genepanelstring[:-1]
+                hyperlink = results[pubmed_id][4]
+                date = results[pubmed_id][5]
+                tsv_writer.writerow(
+                    [gene_name, gene_id, genepanelstring, pubmed_id, hyperlink,
+                     date])
+    out_file.close()
+
+    if selected_extension == "xlsx":
+        xlsx_file = 'results.xlsx'
+        workbook = Workbook(xlsx_file, {'strings_to_numbers': True})
+        worksheet = workbook.add_worksheet()
+        tsv_reader = csv.reader(open(output_file, 'rt'), delimiter='\t')
+        for row, data in enumerate(tsv_reader):
+            worksheet.write_row(row, 0, data)
+        workbook.close()
+
+    if selected_extension == "xlsx":
+        output = "results.xlsx"
+    elif selected_extension == "txt":
+        output = "results.txt"
+    else:
+        output = "results.tsv"
+
     return render_template("home.html")
 
 
