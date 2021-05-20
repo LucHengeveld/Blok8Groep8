@@ -30,7 +30,7 @@
             <button id="Add">Click to add more OR input fields</button>
             <button id="Remove">Click to remove the last OR input field</button><br><br>
 
-            <form action="{{ url_for("get_input") }}" method="POST">
+            <form action="{{ url_for("get_input") }}" method="POST" enctype="multipart/form-data">
                 <label>
                     <input type="text" name="or_filter" size="50"/>
                 </label>
@@ -138,7 +138,7 @@
                     <input type="radio" name="file_extension" value="tsv"> .tsv (Tab seperated file) <br>
                     <input type="radio" name="file_extension" value="txt"> .txt (Text file) <br>
                     <input type="radio" name="file_extension" value="xlsx"> .xlsx (Excel file) <br>
-                </label>
+                </label><br>
                 <button name="search" type="submit">Save results</button><br><br>
             </form>
 

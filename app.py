@@ -1,14 +1,13 @@
 import re
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, Response
 import pandas as pd
 from Bio import Entrez, Medline
 import requests
 from datetime import datetime
-from werkzeug.utils import secure_filename
 import csv
 from xlsxwriter.workbook import Workbook
-import json
 import ast
+
 
 app = Flask(__name__)
 
@@ -55,8 +54,6 @@ def get_input():
             print(genepanel_filter)
             print(use_co_occurence)
 
-            # genepanel_file = "C:/Users/luche/Documents/HAN/Leerjaar_2/Informatica Jaar 2/Blok 8/GenPanelOverzicht_DG-3.1.0_HAN.xlsx"
-
             Entrez.email = email
 
             if genepanel_file:
@@ -95,25 +92,24 @@ def get_input():
             results = publication_date(results)
             results = genepanel_results(results, genes_dict)
 
-            if use_co_occurence == "Yes":
-                titlepoints = 10
-                sentencepoints = 5
-                abstractpoints = 3
-                articlepoints = 1
-                diseasepoints = co_occurrence(results, articlepoints,
-                                              abstractpoints, sentencepoints,
-                                              titlepoints, 3)
+            titlepoints = 10
+            sentencepoints = 5
+            abstractpoints = 3
+            articlepoints = 1
+            diseasepoints = co_occurrence(results, articlepoints,
+                                          abstractpoints, sentencepoints,
+                                          titlepoints, 3)
 
-                for key, value in results.items():
-                    diseasesperarticle = []
-                    for key2, value2 in diseasepoints.get(key).items():
-                        diseasespergene = []
-                        for disease in sorted(value2, reverse=True)[:3]:
-                            diseasespergene.append(disease[1])
-                        diseasesperarticle.append(diseasespergene)
-                    results[key].append(diseasesperarticle)
+            for key, value in results.items():
+                diseasesperarticle = []
+                for key2, value2 in diseasepoints.get(key).items():
+                    diseasespergene = []
+                    for disease in sorted(value2, reverse=True)[:3]:
+                        diseasespergene.append(disease[1])
+                    diseasesperarticle.append(diseasespergene)
+                results[key].append(diseasesperarticle)
 
-            return render_template("homeresults.html",
+            return render_template("results.html",
                                    or_list=or_list,
                                    and_filter=and_filter,
                                    not_filter=not_filter,
@@ -487,9 +483,8 @@ def read_pubtator_file(pubtator_link, gene_panel_dict, genepanel_filter):
                                             genepanel_filter.upper())
                                     for j in genepanel_filter_lijst:
                                         if j in gene_panel_dict.keys():
-                                            if lines[i].split("\t")[
-                                                3].upper() in gene_panel_dict[
-                                                j]:
+                                            if lines[i].split("\t")[3].upper()\
+                                                    in gene_panel_dict[j]:
                                                 genepanelboolean = True
                                     if genepanelboolean == False:
                                         if gene not in genelist:
@@ -640,19 +635,15 @@ def genepanel_results(results, genes_dict):
     return results
 
 
-@app.route('/homeresults.html', methods=["POST"])
+@app.route('/results.html', methods=["POST"])
 def save_results():
     results = request.args.get('results')
     results = ast.literal_eval(results)
-    for key in results:
-        print(results[key])
 
     try:
         selected_extension = request.form["file_extension"]
     except:
         selected_extension = "tsv"
-
-    print(selected_extension)
 
     if selected_extension == "txt":
         output_file = "results.txt"
@@ -663,7 +654,7 @@ def save_results():
         tsv_writer = csv.writer(out_file, delimiter='\t')
         tsv_writer.writerow(
             ["Gene name", "Gene ID", "Gene Panels", "Pubmed ID",
-             "Pubmed Hyperlink", "Publication Date"])
+             "Pubmed Hyperlink", "Publication Date", "Possible diseases"])
         for pubmed_id in results:
             for gene_index in range(len(results[pubmed_id][2])):
                 gene_name = results[pubmed_id][2][gene_index].rsplit(" ", 1)[0]
@@ -675,9 +666,19 @@ def save_results():
                 genepanelstring = genepanelstring[:-1]
                 hyperlink = results[pubmed_id][4]
                 date = results[pubmed_id][5]
-                tsv_writer.writerow(
-                    [gene_name, gene_id, genepanelstring, pubmed_id, hyperlink,
-                     date])
+                try:
+                    diseases = results[pubmed_id][-1][gene_index]
+                except IndexError:
+                    diseases = ["-"]
+                diseasestring = ""
+                for j in diseases:
+                    if j != diseases[-1]:
+                        diseasestring += j + ","
+                    else:
+                        diseasestring += j
+
+                tsv_writer.writerow([gene_name, gene_id, genepanelstring, pubmed_id, hyperlink, date, diseasestring])
+
     out_file.close()
 
     if selected_extension == "xlsx":
@@ -696,7 +697,13 @@ def save_results():
     else:
         output = "results.tsv"
 
-    return render_template("home.html")
+    if selected_extension == "xlsx":
+        return send_file(output)
+    else:
+        file = open(output, 'r')
+        returnfile = file.read().encode('latin-1')
+        file.close()
+        return Response(returnfile, mimetype="text/csv/xlsx", headers={"Content-disposition":"attachment; filename=" + output})
 
 
 @app.route('/info.html', methods=["POST", "GET"])
