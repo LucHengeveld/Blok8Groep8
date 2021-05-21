@@ -700,10 +700,12 @@ def save_results():
     if selected_extension == "xlsx":
         return send_file(output)
     else:
-        file = open(output, 'r')
-        returnfile = file.read().encode('latin-1')
-        file.close()
-        return Response(returnfile, mimetype="text/csv/xlsx", headers={"Content-disposition":"attachment; filename=" + output})
+        return send_file(attachment_filename=output, filename_or_fp=output, mimetype="text/tsv", as_attachment=True)
+        #
+        # file = open(output, 'r')
+        # returnfile = file.read().encode('latin-1')
+        # file.close()
+        # return Response(returnfile, mimetype="text/tsv", headers={"Content-disposition":"attachment; filename=" + output})
 
 
 @app.route('/info.html', methods=["POST", "GET"])
