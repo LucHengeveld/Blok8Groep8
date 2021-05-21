@@ -132,13 +132,14 @@
             <br><br><hr>
 
             <h2>Search results:</h2>
-            <form action="{{ url_for("save_results", results=results) }}" method="POST">
+            <form action="{{ url_for("save_results") }}" method="POST">
                 <label>
                     Enter the file extension you would like to use to save the file:<br>
                     <input type="radio" name="file_extension" value="tsv"> .tsv (Tab seperated file) <br>
                     <input type="radio" name="file_extension" value="txt"> .txt (Text file) <br>
                     <input type="radio" name="file_extension" value="xlsx"> .xlsx (Excel file) <br>
                 </label><br>
+                <input type="hidden" name="results" value="{{ results }}">
                 <button name="search" type="submit">Save results</button><br><br>
             </form>
 

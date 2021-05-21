@@ -1,5 +1,5 @@
 import re
-from flask import Flask, render_template, request, send_file, Response
+from flask import Flask, render_template, request, send_file
 import pandas as pd
 from Bio import Entrez, Medline
 import requests
@@ -637,9 +637,8 @@ def genepanel_results(results, genes_dict):
 
 @app.route('/results.html', methods=["POST"])
 def save_results():
-    results = request.args.get('results')
+    results = request.form['results']
     results = ast.literal_eval(results)
-
     try:
         selected_extension = request.form["file_extension"]
     except:
@@ -698,14 +697,9 @@ def save_results():
         output = "results.tsv"
 
     if selected_extension == "xlsx":
-        return send_file(output)
+        return send_file(attachment_filename=output, filename_or_fp=output, mimetype="xlsx", as_attachment=True)
     else:
         return send_file(attachment_filename=output, filename_or_fp=output, mimetype="text/tsv", as_attachment=True)
-        #
-        # file = open(output, 'r')
-        # returnfile = file.read().encode('latin-1')
-        # file.close()
-        # return Response(returnfile, mimetype="text/tsv", headers={"Content-disposition":"attachment; filename=" + output})
 
 
 @app.route('/info.html', methods=["POST", "GET"])
