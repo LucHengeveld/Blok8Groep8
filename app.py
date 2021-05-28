@@ -8,7 +8,6 @@ import csv
 from xlsxwriter.workbook import Workbook
 import ast
 
-
 app = Flask(__name__)
 
 
@@ -77,6 +76,7 @@ def get_input():
 
             # query = making_query(or_list2, and_filter2, not_filter2,
             #                      gene_filter2)
+            # print(query)
             query = "((ABC transporter [tiab] OR transporter [tiab] OR transport [" \
                     "tiab]) AND (disease [tiab] OR mutation [tiab] OR mutations [" \
                     "tiab] OR liver disease [tiab]) AND (lipids [tiab] OR " \
@@ -87,7 +87,7 @@ def get_input():
             pubtator_link = get_pubtator_link(id_list)
 
             results = read_pubtator_file(pubtator_link, gene_panel_dict,
-                                         genepanel_filter)
+                                         genepanel_filter, gene_filter)
             results = pubmed_hyperlink(results)
             results = publication_date(results)
             results = genepanel_results(results, genes_dict)
@@ -259,7 +259,6 @@ def gene_synonyms(synonyms, gps_list, genes_dict, gene_panel_dict):
 
 def retrieve_data(or_list, and_filter, not_filter, gene_filter):
     """ This function will prepare the different parts of the query.
-
     :param or_list: The input from get_input.
     :param and_filter: The input from get_input.
     :param not_filter: The input from get_input.
@@ -269,7 +268,6 @@ def retrieve_data(or_list, and_filter, not_filter, gene_filter):
     :return not_filter: List with NOT search terms.
     :return gene_filter: List with gene filter search terms.
     """
-
     try:
         # The or_list will be edited here
         if or_list is not None:
@@ -325,7 +323,6 @@ def retrieve_data(or_list, and_filter, not_filter, gene_filter):
 def making_query(or_list2, and_filter2, not_filter2, gene_filter2):
     """ This function combine's the 4 filters into a query. This
     query can be used for searching the PubMed.
-
     :param or_list: List with OR search terms.
     :param and_filter: List with AND search terms.
     :param not_filter: List with NOT search terms.
@@ -333,10 +330,8 @@ def making_query(or_list2, and_filter2, not_filter2, gene_filter2):
     :return query: Combining the or_list, and_filter, not_filter and
     gene_filter.
     """
-
     try:
         query = []  # Creating empty list
-
         if or_list2 != "":  # Query of the or_list added to empty
             # query list
             query_or = or_list2
@@ -344,7 +339,6 @@ def making_query(or_list2, and_filter2, not_filter2, gene_filter2):
             # print("Query or: ", query_or)
         else:
             pass
-
         if and_filter2 != "":  # Query of the and_filter added to empty
             # query list
             query_and = " AND (", and_filter2
@@ -354,7 +348,6 @@ def making_query(or_list2, and_filter2, not_filter2, gene_filter2):
             # print("Query and: ", query_and)
         else:
             pass
-
         if not_filter2 != "":  # Query of the not_filter added to empty
             # query list
             query_not = " AND (NOT", not_filter2
@@ -364,7 +357,6 @@ def making_query(or_list2, and_filter2, not_filter2, gene_filter2):
             # print("Query not: ", query_not)
         else:
             pass
-
         if gene_filter2 != "":  # Query of the gene_filter added to
             # empty query list
             query_gene = " AND ", gene_filter2
@@ -374,7 +366,6 @@ def making_query(or_list2, and_filter2, not_filter2, gene_filter2):
             # print("Query gene: ", query_gene)
         else:
             pass
-
         query = str(query).replace("', '( ", " ").replace("['", "(") \
             .replace("']", ")")
         return query
@@ -435,7 +426,8 @@ def get_pubtator_link(id_list):
     return pubtator_link
 
 
-def read_pubtator_file(pubtator_link, gene_panel_dict, genepanel_filter):
+def read_pubtator_file(pubtator_link, gene_panel_dict, genepanel_filter,
+                       gene_filter):
     """This function reads the pubtator link as a text file and
     retrieves the title, abstract, genes and diseases out of each article.
 
@@ -456,6 +448,11 @@ def read_pubtator_file(pubtator_link, gene_panel_dict, genepanel_filter):
     genelist = []
     diseaselist = []
     genepanel_filter_lijst = []
+    if gene_filter != "":
+        genefilter_lijst = gene_filter.split(", ")
+    else:
+        genefilter_lijst = []
+    print(genefilter_lijst)
     for i in range(len(lines)):
         if "|t|" in lines[i]:
             article_id = lines[i].split("|t|")[0]
@@ -469,28 +466,33 @@ def read_pubtator_file(pubtator_link, gene_panel_dict, genepanel_filter):
                 if "Gene" in lines[i]:
                     gene = lines[i].split("\t")[3] + " " + \
                            lines[i].split("\t")[-1]
-                    if gene.upper() not in genelist:
-                        if gene.lower() not in genelist:
-                            if gene not in genelist:
-                                if genepanel_filter != "":
-                                    genepanelboolean = False
-                                    if "," in genepanel_filter.replace(" ",
-                                                                       ""):
-                                        genepanel_filter_lijst = genepanel_filter.upper().replace(
-                                            " ", "").split(",")
+                    genefilter_boolean = False
+                    for j in range(len(genefilter_lijst)):
+                        if genefilter_lijst and lines[i].split("\t")[3] == genefilter_lijst[j]:
+                            genefilter_boolean = True
+                    if genefilter_boolean == True or not genefilter_lijst:
+                        if gene.upper() not in genelist:
+                            if gene.lower() not in genelist:
+                                if gene not in genelist:
+                                    if genepanel_filter != "":
+                                        genepanelboolean = False
+                                        if "," in genepanel_filter.replace(" ", ""):
+                                            genepanel_filter_lijst = genepanel_filter.upper().replace(" ", "").split(",")
+                                        else:
+                                            genepanel_filter_lijst.append(
+                                                genepanel_filter.upper())
+                                        for j in genepanel_filter_lijst:
+                                            if j in gene_panel_dict.keys():
+                                                if lines[i].split("\t")[
+                                                    3].upper() \
+                                                        in gene_panel_dict[j]:
+                                                    genepanelboolean = True
+                                        if genepanelboolean == False:
+                                            if gene not in genelist:
+                                                genelist.append(gene)
                                     else:
-                                        genepanel_filter_lijst.append(
-                                            genepanel_filter.upper())
-                                    for j in genepanel_filter_lijst:
-                                        if j in gene_panel_dict.keys():
-                                            if lines[i].split("\t")[3].upper()\
-                                                    in gene_panel_dict[j]:
-                                                genepanelboolean = True
-                                    if genepanelboolean == False:
-                                        if gene not in genelist:
-                                            genelist.append(gene)
-                                else:
-                                    genelist.append(gene)
+                                        genelist.append(gene)
+
                 elif "Disease" in lines[i]:
                     disease = lines[i].split("\t")[3] + " " + \
                               lines[i].split("\t")[-1]
@@ -520,7 +522,7 @@ def pubmed_hyperlink(results):
     hyperlink]
     """
     # Standard pubmed hyperlink
-    standard_hyperlink = "https://pubmed.ncbi.nlm.nih.gov/id/"
+    standard_hyperlink = "https://www.ncbi.nlm.nih.gov/research/pubtator/?view=docsum&query=id"
 
     # Adds the article ID's to the standard pubmed hyperlink and appends
     # this to the results dictionary.
@@ -676,7 +678,9 @@ def save_results():
                     else:
                         diseasestring += j
 
-                tsv_writer.writerow([gene_name, gene_id, genepanelstring, pubmed_id, hyperlink, date, diseasestring])
+                tsv_writer.writerow(
+                    [gene_name, gene_id, genepanelstring, pubmed_id, hyperlink,
+                     date, diseasestring])
 
     out_file.close()
 
@@ -697,9 +701,11 @@ def save_results():
         output = "results.tsv"
 
     if selected_extension == "xlsx":
-        return send_file(attachment_filename=output, filename_or_fp=output, mimetype="xlsx", as_attachment=True)
+        return send_file(attachment_filename=output, filename_or_fp=output,
+                         mimetype="xlsx", as_attachment=True)
     else:
-        return send_file(attachment_filename=output, filename_or_fp=output, mimetype="text/tsv", as_attachment=True)
+        return send_file(attachment_filename=output, filename_or_fp=output,
+                         mimetype="text/tsv", as_attachment=True)
 
 
 @app.route('/info.html', methods=["POST", "GET"])
