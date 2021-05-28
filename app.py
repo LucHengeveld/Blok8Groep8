@@ -99,15 +99,7 @@ def get_input():
             diseasepoints = co_occurrence(results, articlepoints,
                                           abstractpoints, sentencepoints,
                                           titlepoints, 3)
-
-            for key, value in results.items():
-                diseasesperarticle = []
-                for key2, value2 in diseasepoints.get(key).items():
-                    diseasespergene = []
-                    for disease in sorted(value2, reverse=True)[:3]:
-                        diseasespergene.append(disease[1])
-                    diseasesperarticle.append(diseasespergene)
-                results[key].append(diseasesperarticle)
+            results = add_co_occurrence_to_results(results, diseasepoints)
 
             return render_template("results.html",
                                    or_list=or_list,
@@ -622,6 +614,28 @@ def co_occurrence(results, articlepoints, abstractpoints, sentencepoints,
             pointsperid[gene] = zip(pointspergene, valuespergene)
         points[key] = pointsperid
     return points
+
+
+def add_co_occurrence_to_results(results, diseasepoints):
+    """This function adds the 3 diseases with the highest co-occurrence
+    score to the results.
+
+    :param results: Dictionary with as key the article ID and as value
+    a list with the structure [title, abstract, genelist, diseaselist,
+    hyperlink]
+    :param diseasepoints: The list with all the points per gene and
+    disease combination per article
+    :return: the results dictionary
+    """
+    for key, value in results.items():
+        diseasesperarticle = []
+        for key2, value2 in diseasepoints.get(key).items():
+            diseasespergene = []
+            for disease in sorted(value2, reverse=True)[:3]:
+                diseasespergene.append(disease[1])
+            diseasesperarticle.append(diseasespergene)
+        results[key].append(diseasesperarticle)
+    return results
 
 
 def genepanel_results(results, genes_dict):
