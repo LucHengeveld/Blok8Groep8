@@ -55,6 +55,7 @@ def get_input():
 
             Entrez.email = email
 
+            # todo module genpanel reader
             if genepanel_file:
                 gp_table = excel_reader(genepanel_file)
                 genes = get_column(gp_table, "GenePanels_Symbol")
@@ -71,6 +72,7 @@ def get_input():
                 gene_panel_dict = {}
                 genes_dict = {}
 
+            # todo module pubmed/pubtator
             or_list2, and_filter2, not_filter2, gene_filter2 = retrieve_data(
                 or_list, and_filter, not_filter, gene_filter)
 
@@ -92,6 +94,7 @@ def get_input():
             results = publication_date(results)
             results = genepanel_results(results, genes_dict)
 
+            # todo module co-occurrence
             titlepoints = 10
             sentencepoints = 5
             abstractpoints = 3
@@ -100,6 +103,9 @@ def get_input():
                                           abstractpoints, sentencepoints,
                                           titlepoints, 3)
             results = add_co_occurrence_to_results(results, diseasepoints)
+
+            # todo module relevance score
+            values = get_values_for_relevance(or_list, and_filter, gene_filter)
 
             return render_template("results.html",
                                    or_list=or_list,
@@ -636,6 +642,35 @@ def add_co_occurrence_to_results(results, diseasepoints):
             diseasesperarticle.append(diseasespergene)
         results[key].append(diseasesperarticle)
     return results
+
+
+def get_values_for_relevance(or_list, and_filter, gene_filter):
+    """This function gets all values to calculate the relevance score
+    with.
+
+    :param or_list: a list of OR search terms
+    :param and_filter: a list of AND search terms
+    :param gene_filter: a list of gene filter search terms
+    :return: a list of filter terms
+    """
+    values = []
+    for or_filter in or_list:
+        for or_fil in or_filter.split(", "):
+            if or_fil == "":
+                pass
+            else:
+                values.append(or_fil)
+    for and_fil in and_filter.split(", "):
+        if and_fil == "":
+            pass
+        else:
+            values.append(and_fil)
+    for gene_fil in gene_filter.split(", "):
+        if gene_fil == "":
+            pass
+        else:
+            values.append(gene_fil)
+    return values
 
 
 def genepanel_results(results, genes_dict):
