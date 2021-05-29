@@ -154,15 +154,15 @@
                         <th>Possible diseases</th>
                     </tr>
 
-                    {% for key in results %}
-                        {% for gene in results[key][2] %}
+                    {% for key in relevance_score %}
+                        {% for gene in results[key[0]][2] %}
                             <tr>
                                 <td>{{ gene.rsplit(" ", 1)[0] }}</td>
                                 <td>{{ gene.rsplit(" ", 1)[1] }}</td>
-                                <td><a href="{{ results[key][4] }}" target="_blank">{{ key }}</a></td>
-                                <td>{{ results[key][5] }}</td>
-                                <td>{% for i in results[key][6][results[key][2].index(gene)] %}
-                                        {% if i != results[key][6][results[key][2].index(gene)][-1] %}
+                                <td><a href="{{ results[key[0]][4] }}" target="_blank">{{ key[0] }}</a></td>
+                                <td>{{ results[key[0]][5] }}</td>
+                                <td>{% for i in results[key[0]][6][results[key[0]][2].index(gene)] %}
+                                        {% if i != results[key[0]][6][results[key[0]][2].index(gene)][-1] %}
                                             {{ i + "," }}
                                         {% else %}
                                             {{ i }}
@@ -170,8 +170,8 @@
                                     {% endfor %}
                                 </td>
                                 <td>
-                                    {% for i in results[key][-1][results[key][2].index(gene)] %}
-                                        {% if i != results[key][-1][results[key][2].index(gene)][-1] %}
+                                    {% for i in results[key[0]][-1][results[key[0]][2].index(gene)] %}
+                                        {% if i != results[key[0]][-1][results[key[0]][2].index(gene)][-1] %}
                                             {{ i + "," }}
                                         {% else %}
                                             {{ i }}
@@ -194,15 +194,15 @@
                         <th>Genepanel</th>
                     </tr>
 
-                    {% for key in results %}
-                        {% for gene in results[key][2] %}
+                    {% for key in relevance_score %}
+                        {% for gene in results[key[0]][2] %}
                             <tr>
                                 <td>{{ gene.rsplit(" ", 1)[0] }}</td>
                                 <td>{{ gene.rsplit(" ", 1)[1] }}</td>
-                                <td><a href="{{ results[key][4] }}" target="_blank">{{ key }}</a></td>
-                                <td>{{ results[key][5] }}</td>
-                                <td>{% for i in results[key][6][results[key][2].index(gene)] %}
-                                        {% if i != results[key][6][results[key][2].index(gene)][-1] %}
+                                <td><a href="{{ results[key[0]][4] }}" target="_blank">{{ key[0] }}</a></td>
+                                <td>{{ results[key[0]][5] }}</td>
+                                <td>{% for i in results[key[0]][6][results[key[0]][2].index(gene)] %}
+                                        {% if i != results[key[0]][6][results[key[0]][2].index(gene)][-1] %}
                                             {{ i + "," }}
                                         {% else %}
                                             {{ i }}

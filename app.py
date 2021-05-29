@@ -94,7 +94,6 @@ def get_input():
             results = publication_date(results)
             results = genepanel_results(results, genes_dict)
 
-            # todo module co-occurrence
             titlepoints = 10
             sentencepoints = 5
             abstractpoints = 3
@@ -121,7 +120,8 @@ def get_input():
                                    genepanel_filter=genepanel_filter,
                                    email=email,
                                    use_co_occurence=use_co_occurence,
-                                   results=results)
+                                   results=results,
+                                   relevance_score=relevance_score)
         except:
             or_filter = request.form["or_filter"]
             or_list = request.form.getlist('or_list')
