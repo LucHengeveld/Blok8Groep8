@@ -105,7 +105,11 @@ def get_input():
             results = add_co_occurrence_to_results(results, diseasepoints)
 
             # todo module relevance score
-            values = get_values_for_relevance(or_list, and_filter, gene_filter)
+            filters = get_values_for_relevance(or_list, and_filter,
+                                               gene_filter)
+            relevance_score = get_relevance_score(results, filters)
+            relevance_score = sort_relevance_score(relevance_score)
+            print(relevance_score)
 
             return render_template("results.html",
                                    or_list=or_list,
@@ -466,7 +470,8 @@ def read_pubtator_file(pubtator_link, gene_panel_dict, genepanel_filter,
                            lines[i].split("\t")[-1]
                     genefilter_boolean = False
                     for j in range(len(genefilter_lijst)):
-                        if genefilter_lijst and lines[i].split("\t")[3] == genefilter_lijst[j]:
+                        if genefilter_lijst and lines[i].split("\t")[3] == \
+                                genefilter_lijst[j]:
                             genefilter_boolean = True
                     if genefilter_boolean == True or not genefilter_lijst:
                         if gene.upper() not in genelist:
@@ -474,8 +479,10 @@ def read_pubtator_file(pubtator_link, gene_panel_dict, genepanel_filter,
                                 if gene not in genelist:
                                     if genepanel_filter != "":
                                         genepanelboolean = False
-                                        if "," in genepanel_filter.replace(" ", ""):
-                                            genepanel_filter_lijst = genepanel_filter.upper().replace(" ", "").split(",")
+                                        if "," in genepanel_filter.replace(" ",
+                                                                           ""):
+                                            genepanel_filter_lijst = genepanel_filter.upper().replace(
+                                                " ", "").split(",")
                                         else:
                                             genepanel_filter_lijst.append(
                                                 genepanel_filter.upper())
@@ -653,24 +660,58 @@ def get_values_for_relevance(or_list, and_filter, gene_filter):
     :param gene_filter: a list of gene filter search terms
     :return: a list of filter terms
     """
-    values = []
+    filters = []
     for or_filter in or_list:
         for or_fil in or_filter.split(", "):
             if or_fil == "":
                 pass
             else:
-                values.append(or_fil)
+                filters.append(or_fil)
     for and_fil in and_filter.split(", "):
         if and_fil == "":
             pass
         else:
-            values.append(and_fil)
+            filters.append(and_fil)
     for gene_fil in gene_filter.split(", "):
         if gene_fil == "":
             pass
         else:
-            values.append(gene_fil)
-    return values
+            filters.append(gene_fil)
+    return filters
+
+
+def get_relevance_score(results, filters):
+    """This function calculates the relevance score of every article
+    with the searched query.
+
+    :param results: Dictionary with as key the article ID and as value
+    a list with the structure [title, abstract, genelist, diseaselist,
+    hyperlink]
+    :param filters: a list of filter terms
+    :return: a 2D list of every article with the relevance score in a
+    list
+    """
+    relevance_score = []
+    for key, value in results.items():
+        rel_score = 0
+        for filter in filters:
+            # Add +2 for every filter in the title
+            rel_score += 2 * len(re.findall(filter.lower(), value[0].lower()))
+            # Add +1 for every filter in the abstract
+            rel_score += len(re.findall(filter.lower(), value[1].lower()))
+        relevance_score.append([key, rel_score])
+    return relevance_score
+
+
+def sort_relevance_score(relevance_score):
+    """This function sorts the articles by relevance score.
+
+    :param relevance_score: a 2D list of every article with the
+    relevance score in a list
+    :return: a sorted 2D list of every article with the relevance score
+    in a list
+    """
+    return sorted(relevance_score, key=lambda l: l[1], reverse=True)
 
 
 def genepanel_results(results, genes_dict):
