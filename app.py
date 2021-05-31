@@ -76,15 +76,15 @@ def get_input():
             or_list2, and_filter2, not_filter2, gene_filter2 = retrieve_data(
                 or_list, and_filter, not_filter, gene_filter)
 
-            # query = making_query(or_list2, and_filter2, not_filter2,
-            #                      gene_filter2)
-            # print(query)
-            query = "((ABC transporter [tiab] OR transporter [tiab] OR transport [" \
-                    "tiab]) AND (disease [tiab] OR mutation [tiab] OR mutations [" \
-                    "tiab] OR liver disease [tiab]) AND (lipids [tiab] OR " \
-                    "cholesterol [tiab] OR bile salts [tiab] OR canalicular membrane " \
-                    "[tiab] OR phosphatidylcholine [tiab] OR PC [tiab]) AND (ABCB4 [" \
-                    "tiab] OR ABCB4 deficiency [tiab])) "
+            query = making_query(or_list2, and_filter2, not_filter2,
+                                 gene_filter2)
+            # query = "((ABC transporter [tiab] OR transporter [tiab] OR transport [" \
+            #         "tiab]) AND (disease [tiab] OR mutation [tiab] OR mutations [" \
+            #         "tiab] OR liver disease [tiab]) AND (lipids [tiab] OR " \
+            #         "cholesterol [tiab] OR bile salts [tiab] OR canalicular membrane " \
+            #         "[tiab] OR phosphatidylcholine [tiab] OR PC [tiab]) AND (ABCB4 [" \
+            #         "tiab] OR ABCB4 deficiency [tiab])) "
+
             id_list = get_pubmed_ids(query, date_filter)
             pubtator_link = get_pubtator_link(id_list)
 
@@ -108,7 +108,7 @@ def get_input():
                                                gene_filter)
             relevance_score = get_relevance_score(results, filters)
             relevance_score = sort_relevance_score(relevance_score)
-            print(relevance_score)
+            # print(relevance_score)
 
             return render_template("results.html",
                                    or_list=or_list,
@@ -454,7 +454,6 @@ def read_pubtator_file(pubtator_link, gene_panel_dict, genepanel_filter,
         genefilter_lijst = gene_filter.split(", ")
     else:
         genefilter_lijst = []
-    print(genefilter_lijst)
     for i in range(len(lines)):
         if "|t|" in lines[i]:
             article_id = lines[i].split("|t|")[0]
@@ -469,34 +468,33 @@ def read_pubtator_file(pubtator_link, gene_panel_dict, genepanel_filter,
                     gene = lines[i].split("\t")[3] + " " + \
                            lines[i].split("\t")[-1]
                     genefilter_boolean = False
-                    for j in range(len(genefilter_lijst)):
-                        if genefilter_lijst and lines[i].split("\t")[3] == \
-                                genefilter_lijst[j]:
-                            genefilter_boolean = True
-                    if genefilter_boolean == True or not genefilter_lijst:
-                        if gene.upper() not in genelist:
-                            if gene.lower() not in genelist:
-                                if gene not in genelist:
-                                    if genepanel_filter != "":
-                                        genepanelboolean = False
-                                        if "," in genepanel_filter.replace(" ",
-                                                                           ""):
-                                            genepanel_filter_lijst = genepanel_filter.upper().replace(
-                                                " ", "").split(",")
+                    if not " " in lines[i].split("\t")[3]:
+                        for j in range(len(genefilter_lijst)):
+                            if genefilter_lijst and lines[i].split("\t")[3] == \
+                                    genefilter_lijst[j]:
+                                genefilter_boolean = True
+                        if genefilter_boolean == True or not genefilter_lijst:
+                            if gene.upper() not in genelist:
+                                if gene.lower() not in genelist:
+                                    if gene not in genelist:
+                                        if genepanel_filter != "":
+                                            genepanelboolean = False
+                                            if "," in genepanel_filter.replace(" ", ""):
+                                                genepanel_filter_lijst = genepanel_filter.upper().replace(" ", "").split(",")
+                                            else:
+                                                genepanel_filter_lijst.append(
+                                                    genepanel_filter.upper())
+                                            for j in genepanel_filter_lijst:
+                                                if j in gene_panel_dict.keys():
+                                                    if lines[i].split("\t")[
+                                                        3].upper() \
+                                                            in gene_panel_dict[j]:
+                                                        genepanelboolean = True
+                                            if genepanelboolean == False:
+                                                if gene not in genelist:
+                                                    genelist.append(gene)
                                         else:
-                                            genepanel_filter_lijst.append(
-                                                genepanel_filter.upper())
-                                        for j in genepanel_filter_lijst:
-                                            if j in gene_panel_dict.keys():
-                                                if lines[i].split("\t")[
-                                                    3].upper() \
-                                                        in gene_panel_dict[j]:
-                                                    genepanelboolean = True
-                                        if genepanelboolean == False:
-                                            if gene not in genelist:
-                                                genelist.append(gene)
-                                    else:
-                                        genelist.append(gene)
+                                            genelist.append(gene)
 
                 elif "Disease" in lines[i]:
                     disease = lines[i].split("\t")[3] + " " + \
