@@ -14,6 +14,12 @@ app = Flask(__name__)
 @app.route('/')
 @app.route('/home.html', methods=["POST", "GET"])
 def get_input():
+    """
+    This function retrieves all filters from the webapplication, calls all
+    other functions and renders the results page.
+
+    :return render template: results.html with all entered filters and results
+    """
     if request.method == 'POST':
         try:
             or_filter = request.form["or_filter"]
@@ -42,20 +48,8 @@ def get_input():
             except:
                 use_co_occurence = "Not selected"
 
-            print(email)
-            print(or_filter)
-            print(or_list)
-            print(and_filter)
-            print(not_filter)
-            print(genepanel_file_name)
-            print(gene_filter)
-            print(date_filter)
-            print(genepanel_filter)
-            print(use_co_occurence)
-
             Entrez.email = email
 
-            # todo module genpanel reader
             if genepanel_file:
                 gp_table = excel_reader(genepanel_file)
                 genes = get_column(gp_table, "GenePanels_Symbol")
@@ -72,43 +66,28 @@ def get_input():
                 gene_panel_dict = {}
                 genes_dict = {}
 
-            # todo module pubmed/pubtator
             or_list2, and_filter2, not_filter2, gene_filter2 = retrieve_data(
                 or_list, and_filter, not_filter, gene_filter)
 
             query = making_query(or_list2, and_filter2, not_filter2,
                                  gene_filter2)
-            # query = "((ABC transporter [tiab] OR transporter [tiab] OR transport [" \
-            #         "tiab]) AND (disease [tiab] OR mutation [tiab] OR mutations [" \
-            #         "tiab] OR liver disease [tiab]) AND (lipids [tiab] OR " \
-            #         "cholesterol [tiab] OR bile salts [tiab] OR canalicular membrane " \
-            #         "[tiab] OR phosphatidylcholine [tiab] OR PC [tiab]) AND (ABCB4 [" \
-            #         "tiab] OR ABCB4 deficiency [tiab])) "
 
             id_list = get_pubmed_ids(query, date_filter)
             pubtator_link = get_pubtator_link(id_list)
 
             results = read_pubtator_file(pubtator_link, gene_panel_dict,
                                          genepanel_filter, gene_filter)
-            results = pubmed_hyperlink(results)
+            results = pubtator_hyperlink(results)
             results = publication_date(results)
             results = genepanel_results(results, genes_dict)
 
-            titlepoints = 10
-            sentencepoints = 5
-            abstractpoints = 3
-            articlepoints = 1
-            diseasepoints = co_occurrence(results, articlepoints,
-                                          abstractpoints, sentencepoints,
-                                          titlepoints, 3)
+            diseasepoints = co_occurrence(results, 3)
             results = add_co_occurrence_to_results(results, diseasepoints)
 
-            # todo module relevance score
             filters = get_values_for_relevance(or_list, and_filter,
                                                gene_filter)
             relevance_score = get_relevance_score(results, filters)
             relevance_score = sort_relevance_score(relevance_score)
-            # print(relevance_score)
 
             return render_template("results.html",
                                    or_list=or_list,
@@ -175,32 +154,38 @@ def get_input():
 
 
 def excel_reader(file_name):
-    """This function converts the table in the excel file to a table in
+    """
+    This function converts the table in the excel file to a table in
     Python.
 
-    :param file_name: the name of the file
-    :return: the gene panels table
+    :param file_name: The name of the file
+
+    :return: The gene panels table
     """
     return pd.read_excel(file_name)
 
 
 def get_column(gp_table, column_name):
-    """This function gets the values from a column from the gene panels
+    """
+    This function gets the values from a column from the gene panels
     table and returns it in a list.
 
-    :param gp_table: the gene panels table
-    :param column_name: the name of the column
-    :return: the values from a column in a list
+    :param gp_table: The gene panels table
+    :param column_name: The name of the column
+
+    :return: The values from a column in a list
     """
     return gp_table[column_name].tolist()
 
 
 def make_genepanel_list_set(gene_panels_list):
-    """This function makes a list and set of all the gene panels with
+    """
+    This function makes a list and set of all the gene panels with
     the (AD, etc.) removed.
 
-    :param gene_panels_list: the values from a column in a list
-    :return: the list and set of all the gene panels
+    :param gene_panels_list: The values from a column in a list
+
+    :return: The list and set of all the gene panels
     """
     gps_list = []
     gps_set = []
@@ -220,26 +205,30 @@ def make_genepanel_list_set(gene_panels_list):
 
 
 def make_gene_dict(genes, gps_list):
-    """This function makes a dictionary with the genes as keys and the
+    """
+    This function makes a dictionary with the genes as keys and the
     gene panels in a list as values.
 
-    :param genes: the list of all the genes
-    :param gps_list: the list of all the gene panels
-    :return: the dictionary with the genes as keys and the gene panels
+    :param genes: The list of all the genes
+    :param gps_list: The list of all the gene panels
+
+    :return: The dictionary with the genes as keys and the gene panels
     as values
     """
     return dict(zip(genes, gps_list))
 
 
 def make_gene_panel_dict(gps_set, genes_dict):
-    """This function makes a dictionary with the gene panels as keys
+    """
+    This function makes a dictionary with the gene panels as keys
     and the genes as values.
 
-    :param gps_set: the set of all the gene panels
-    :param genes_dict: the dictionary with the genes as keys and the
+    :param gps_set: The set of all the gene panels
+    :param genes_dict: The dictionary with the genes as keys and the
     gene panels as values
-    :return: the dictionary with the gene panels as keys and the genes
-    as values
+
+    :return gene_panel_dict: The dictionary with the gene panels as keys and
+    the genes as values
     """
     gene_panel_dict = {}
     for gene_panel in gps_set:
@@ -249,6 +238,22 @@ def make_gene_panel_dict(gps_set, genes_dict):
 
 
 def gene_synonyms(synonyms, gps_list, genes_dict, gene_panel_dict):
+    """
+    This function adds all synonyms from the excel file to the genes_dict
+    and the gene_panel_dict
+
+    :param synonyms: The list of all the genes
+    :param gps_list: The list of all the gene panels
+    :param genes_dict: The dictionary with the genes as keys and the gene
+    panels as values
+    :param gene_panel_dict: The dictionary with the gene panels as keys and the
+    genes as values
+
+    :return genes_dict: The dictionary with the genes/gene synonyms as keys and
+    the gene panels as values
+    :return gene_panel_dict: The dictionary with the gene panels as keys and
+    the genes and gene synonyms as values
+    """
     for row in range(len(synonyms)):
         synonyms[row] = str(synonyms[row]).split("|")
         for gene in range(len(synonyms[row])):
@@ -260,11 +265,14 @@ def gene_synonyms(synonyms, gps_list, genes_dict, gene_panel_dict):
 
 
 def retrieve_data(or_list, and_filter, not_filter, gene_filter):
-    """ This function will prepare the different parts of the query.
+    """
+    This function will prepare the different parts of the query.
+
     :param or_list: The input from get_input.
     :param and_filter: The input from get_input.
     :param not_filter: The input from get_input.
     :param gene_filter: The input from get_input.
+
     :return or_list: List with OR search terms.
     :return and_fitler: List with AND search terms.
     :return not_filter: List with NOT search terms.
@@ -277,14 +285,11 @@ def retrieve_data(or_list, and_filter, not_filter, gene_filter):
             if "['" in or_list2:  # [] gets replaced by ()
                 list_or2 = or_list2.replace("['", "(").replace("']",
                                                                " [tiab])")
-                # print("List: ", list_or)
             if "" not in list_or2:  # Checks if list is empty
                 return
             or_list2 = list_or2.replace(",", " [tiab] OR")
             if ' OR ' in or_list2:  # some OR's gets replaced by AND
-                or_list2 = or_list2.replace("' [tiab] OR '", " [tiab]) "
-                                                             "AND (")
-            # print("OR search: ", or_list)
+                or_list2 = or_list2.replace("' [tiab] OR '", " [tiab]) AND (")
         else:
             or_list2 = str(or_list)
 
@@ -293,7 +298,6 @@ def retrieve_data(or_list, and_filter, not_filter, gene_filter):
             and_filter2 = str(and_filter)
             # Commas get replaced by OR
             and_filter2 = and_filter2.replace(",", " [tiab] OR")
-            # print("AND search: ", and_filter)
         else:
             and_filter2 = str(and_filter)
 
@@ -302,35 +306,35 @@ def retrieve_data(or_list, and_filter, not_filter, gene_filter):
             not_filter2 = str(not_filter)
             # Commas get replaced by NOT
             not_filter2 = not_filter.replace(",", " [tiab] NOT")
-            # print("NOT search: ", not_filter)
         else:
             not_filter2 = str(not_filter)
 
-        # # The gene_filter list will be edited here
+        # The gene_filter list will be edited here
         if gene_filter is not None:
             gene_filter2 = str(gene_filter)
             # Commas get replaced by OR
             gene_filter2 = gene_filter.replace(",", " [tiab] OR")
-            # print("Gene filter search: ", gene_filter)
         else:
             gene_filter2 = str(gene_filter)
 
         return or_list2, and_filter2, not_filter2, gene_filter2
 
     except ValueError:
-        print("Error: something went wrong. Please check the info "
-              "page.")
+        pass
 
 
 def making_query(or_list2, and_filter2, not_filter2, gene_filter2):
-    """ This function combine's the 4 filters into a query. This
+    """
+    This function combines the 4 filters into a query. This
     query can be used for searching the PubMed.
-    :param or_list: List with OR search terms.
-    :param and_filter: List with AND search terms.
-    :param not_filter: List with NOT search terms.
-    :param gene_filter: List with gene filter search terms.
-    :return query: Combining the or_list, and_filter, not_filter and
-    gene_filter.
+
+    :param or_list2: List with OR search terms.
+    :param and_filter2: List with AND search terms.
+    :param not_filter2: List with NOT search terms.
+    :param gene_filter2: List with gene filter search terms.
+
+    :return query: Query, made by combining the or_list, and_filter, not_filter
+    and gene_filter.
     """
     try:
         query = []  # Creating empty list
@@ -338,7 +342,6 @@ def making_query(or_list2, and_filter2, not_filter2, gene_filter2):
             # query list
             query_or = or_list2
             query.append(query_or)
-            # print("Query or: ", query_or)
         else:
             pass
         if and_filter2 != "":  # Query of the and_filter added to empty
@@ -347,7 +350,6 @@ def making_query(or_list2, and_filter2, not_filter2, gene_filter2):
             query_and = str(query_and).replace(" ', '", " ").replace(
                 "'", "").replace(", ", "").replace(")", " [tiab])")
             query.append(query_and)
-            # print("Query and: ", query_and)
         else:
             pass
         if not_filter2 != "":  # Query of the not_filter added to empty
@@ -356,7 +358,6 @@ def making_query(or_list2, and_filter2, not_filter2, gene_filter2):
             query_not = str(query_not).replace(" ', '", "").replace(
                 "'", "").replace(",", "").replace(")", " [tiab])")
             query.append(query_not)
-            # print("Query not: ", query_not)
         else:
             pass
         if gene_filter2 != "":  # Query of the gene_filter added to
@@ -365,7 +366,6 @@ def making_query(or_list2, and_filter2, not_filter2, gene_filter2):
             query_gene = str(query_gene).replace("'", "").replace(
                 ", """, "(").replace(")", " [tiab])")
             query.append(query_gene)
-            # print("Query gene: ", query_gene)
         else:
             pass
         query = str(query).replace("', '( ", " ").replace("['", "(") \
@@ -373,16 +373,17 @@ def making_query(or_list2, and_filter2, not_filter2, gene_filter2):
         return query
 
     except ValueError:
-        print("Error: something went wrong. Please check the info "
-              "page.")
+        pass
 
 
 def get_pubmed_ids(query, date_filter):
-    """This function enters the query into an esearch and retrieves the
+    """
+    This function enters the query into an esearch and retrieves the
     pubmed id's from the found articles.
 
     :param query: Pubmed search query.
     :param date_filter: Date input from the webapplication.
+
     :return id_list: List with all found pubmed id's.
     """
     # Retrieves the input date from the webapplication.
@@ -404,11 +405,13 @@ def get_pubmed_ids(query, date_filter):
 
 
 def get_pubtator_link(id_list):
-    """This function uses the id's from the id_list to create a
+    """
+    This function uses the id's from the id_list to create a
     pubtator link which filters the genes and diseases out
     of the title and abstract.
 
     :param id_list: List with all found pubmed id's.
+
     :return pubtator_link: Pubtator link with the title, abstact, genes
     and diseases of each article.
     """
@@ -430,11 +433,13 @@ def get_pubtator_link(id_list):
 
 def read_pubtator_file(pubtator_link, gene_panel_dict, genepanel_filter,
                        gene_filter):
-    """This function reads the pubtator link as a text file and
+    """
+    This function reads the pubtator link as a text file and
     retrieves the title, abstract, genes and diseases out of each article.
 
     :param pubtator_link: Pubtator link with the title, abstact, genes
     and diseases of each article.
+
     :return results: Dictionary with as key the article ID and as value
     a list with the structure [title, abstract, genelist, diseaselist]
     """
@@ -503,7 +508,8 @@ def read_pubtator_file(pubtator_link, gene_panel_dict, genepanel_filter,
                         diseaselist.append(disease)
 
         # if the line is empty, which means its the end of an article,
-        # it will add the title, abstract, genelist and diseaselist to the results dictionary.
+        # it will add the title, abstract, genelist and diseaselist to
+        # the results dictionary.
         else:
             if genelist:
                 results[article_id] = [title, abstract, genelist, diseaselist]
@@ -513,19 +519,22 @@ def read_pubtator_file(pubtator_link, gene_panel_dict, genepanel_filter,
     return results
 
 
-def pubmed_hyperlink(results):
-    """This function creates the hyperlink to the pubmed article by
+def pubtator_hyperlink(results):
+    """
+    This function creates the hyperlink to the PubTator article by
     using the key's (article ID's) from the results dictionary. The
     hyperlink will be added to the values of each key.
 
     :param results: Dictionary with as key the article ID and as value
     a list with the structure [title, abstract, genelist, diseaselist]
+
     :return results: Dictionary with as key the article ID and as value
     a list with the structure [title, abstract, genelist, diseaselist,
     hyperlink]
     """
-    # Standard pubmed hyperlink
-    standard_hyperlink = "https://www.ncbi.nlm.nih.gov/research/pubtator/?view=docsum&query=id"
+    # Standard PubTator hyperlink
+    standard_hyperlink = "https://www.ncbi.nlm.nih.gov/research/pubtator/?" \
+                         "view=docsum&query=id"
 
     # Adds the article ID's to the standard pubmed hyperlink and appends
     # this to the results dictionary.
@@ -537,13 +546,15 @@ def pubmed_hyperlink(results):
 
 
 def publication_date(results):
-    """This function retrieves the publication date of the article by
+    """
+    This function retrieves the publication date of the article by
     using the key's of results (article ID's) in efetch. The publication
     date will be added to the values of each key.
 
     :param results: Dictionary with as key the article ID and as value
     a list with the structure [title, abstract, genelist, diseaselist,
     hyperlink]
+
     :return results: Dictionary with as key the article ID and as value
     a list with the structure [title, abstract, genelist, diseaselist,
     hyperlink, publication date]
@@ -569,25 +580,31 @@ def publication_date(results):
     return results
 
 
-def co_occurrence(results, articlepoints, abstractpoints, sentencepoints,
-                  titlepoints, pos):
-    """This function gives points to every combination of genes and
+def co_occurrence(results, pos):
+    """
+    This function gives points to every combination of genes and
     diseases in the PubMed articles (title and/or abstract).
+
     :param results: Dictionary with as key the article ID and as value
     a list with the structure [title, abstract, genelist, diseaselist,
-     hyperlink]
-    :param articlepoints: The amount of points for a gene and
-    disease in the same article
-    :param abstractpoints: The amount of points for a gene and
-    disease in the same abstract
-    :param sentencepoints: The amount of points for a gene and
-    disease in the same sentence
-    :param titlepoints: The amount of points for a gene and
-    disease in the same title
+    hyperlink, publication date, genepanels]
     :param pos: The position in the results dictionary. 3 = disease
-    :return: The list with all the points per gene and disease
+
+    :return points: The list with all the points per gene and disease
     combination per article
     """
+    # The amount of points for a gene and disease in the same title
+    titlepoints = 10
+
+    # The amount of points for a gene and disease in the same sentence
+    sentencepoints = 5
+
+    # The amount of points for a gene and disease in the same abstract
+    abstractpoints = 3
+
+    # The amount of points for a gene and disease in the same article
+    articlepoints = 1
+
     points = {}
     for key in results:
         pointsperid = {}
@@ -602,7 +619,7 @@ def co_occurrence(results, articlepoints, abstractpoints, sentencepoints,
 
                 # If gene and disease are in the same article,
                 # but not in the title or abstract
-                if gene in results[key][0] and value in results[key][1] \
+                if gene in results[key][0] and value in results[key][1]\
                         or gene in results[key][1] and value in \
                         results[key][0]:
                     count += articlepoints
@@ -628,7 +645,8 @@ def co_occurrence(results, articlepoints, abstractpoints, sentencepoints,
 
 
 def add_co_occurrence_to_results(results, diseasepoints):
-    """This function adds the 3 diseases with the highest co-occurrence
+    """
+    This function adds the 3 diseases with the highest co-occurrence
     score to the results.
 
     :param results: Dictionary with as key the article ID and as value
@@ -636,7 +654,10 @@ def add_co_occurrence_to_results(results, diseasepoints):
     hyperlink]
     :param diseasepoints: The list with all the points per gene and
     disease combination per article
-    :return: the results dictionary
+
+    :return results: Dictionary with as key the article ID and as value
+    a list with the structure [title, abstract, genelist, diseaselist,
+    hyperlink, publication date, genepanels]
     """
     for key, value in results.items():
         diseasesperarticle = []
@@ -650,13 +671,16 @@ def add_co_occurrence_to_results(results, diseasepoints):
 
 
 def get_values_for_relevance(or_list, and_filter, gene_filter):
-    """This function gets all values to calculate the relevance score
-    with.
+    """
+    This function retrieves all values out of the or_list, and_filter and
+    gene_filter and puts them in a list.
 
-    :param or_list: a list of OR search terms
-    :param and_filter: a list of AND search terms
-    :param gene_filter: a list of gene filter search terms
-    :return: a list of filter terms
+    :param or_list: List of OR search terms
+    :param and_filter: List of AND search terms
+    :param gene_filter: List of gene filter search terms
+
+    :return filters: List with all values from the or_list, and_filter and
+    gene_filter
     """
     filters = []
     for or_filter in or_list:
@@ -679,15 +703,17 @@ def get_values_for_relevance(or_list, and_filter, gene_filter):
 
 
 def get_relevance_score(results, filters):
-    """This function calculates the relevance score of every article
+    """
+    This function calculates the relevance score of every article
     with the searched query.
 
     :param results: Dictionary with as key the article ID and as value
     a list with the structure [title, abstract, genelist, diseaselist,
-    hyperlink]
-    :param filters: a list of filter terms
-    :return: a 2D list of every article with the relevance score in a
-    list
+    hyperlink, publication date, genepanels, diseases-co-occurence]
+    :param filters: List with all values from the or_list, and_filter and
+    gene_filter
+
+    :return relevance_score: 2D list of every article with the relevance score
     """
     relevance_score = []
     for key, value in results.items():
@@ -702,17 +728,31 @@ def get_relevance_score(results, filters):
 
 
 def sort_relevance_score(relevance_score):
-    """This function sorts the articles by relevance score.
+    """
+    This function sorts the articles by relevance score.
 
-    :param relevance_score: a 2D list of every article with the
-    relevance score in a list
-    :return: a sorted 2D list of every article with the relevance score
-    in a list
+    :param relevance_score: 2D list of every article with the relevance score
+
+    :return: A sorted 2D list (high to low score) of every article with the
+    relevance score
     """
     return sorted(relevance_score, key=lambda l: l[1], reverse=True)
 
 
 def genepanel_results(results, genes_dict):
+    """
+    This function adds the genepanels to a gene in the results dictionary
+
+    :param results: Dictionary with as key the article ID and as value
+    a list with the structure [title, abstract, genelist, diseaselist,
+    hyperlink, publication date]
+    :param genes_dict: The dictionary with the genes/gene synonyms as keys and
+    the gene panels as values
+
+    :return results: Dictionary with as key the article ID and as value
+    a list with the structure [title, abstract, genelist, diseaselist,
+    hyperlink, publication date, genepanels]
+    """
     for key in results:
         genepanel = []
         for gene in results[key][2]:
@@ -727,8 +767,16 @@ def genepanel_results(results, genes_dict):
 
 @app.route('/results.html', methods=["POST"])
 def save_results():
+    """
+    This function will write and return the results in a file when the
+    "Save results" button is pressed on the webapplication. There are 3 options
+    for file extensions, .txt, .tsv and .xlsx
+
+    :return send_file: Downloads the file with the results to the user's pc
+    """
     results = request.form['results']
     results = ast.literal_eval(results)
+    print(results)
     try:
         selected_extension = request.form["file_extension"]
     except:
@@ -798,6 +846,13 @@ def save_results():
 
 @app.route('/info.html', methods=["POST", "GET"])
 def info():
+    """
+    This function shows the info page when the user selects it in the menu
+    bar on the webapplication. The info page contains information about the
+    application
+
+    :return render template: Shows the info.html page to the user
+    """
     return render_template('info.html')
 
 
