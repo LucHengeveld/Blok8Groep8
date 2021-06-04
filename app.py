@@ -66,11 +66,19 @@ def get_input():
                 gene_panel_dict = {}
                 genes_dict = {}
 
-            or_list2, and_filter2, not_filter2, gene_filter2 = retrieve_data(
-                or_list, and_filter, not_filter, gene_filter)
+            query = make_query(or_list, and_filter, not_filter)
 
-            query = making_query(or_list2, and_filter2, not_filter2,
-                                 gene_filter2)
+            if not query:
+                return render_template("home_error.html",
+                                       or_list=or_list,
+                                       and_filter=and_filter,
+                                       not_filter=not_filter,
+                                       gene_filter=gene_filter,
+                                       date_filter=date_filter,
+                                       genepanel_file_name=genepanel_file_name,
+                                       genepanel_filter=genepanel_filter,
+                                       email=email,
+                                       use_co_occurence=use_co_occurence)
 
             id_list = get_pubmed_ids(query, date_filter)
             pubtator_link = get_pubtator_link(id_list)
@@ -264,119 +272,84 @@ def gene_synonyms(synonyms, gps_list, genes_dict, gene_panel_dict):
     return genes_dict, gene_panel_dict
 
 
-def retrieve_data(or_list, and_filter, not_filter, gene_filter):
+def make_query(or_list, and_filter, not_filter):
     """
-    This function will prepare the different parts of the query.
+    This function creates and returns a query out of the entered keywords.
 
-    :param or_list: The input from get_input.
-    :param and_filter: The input from get_input.
-    :param not_filter: The input from get_input.
-    :param gene_filter: The input from get_input.
+    :param or_list: List with all entered or keywords
+    :param and_filter: String with the entered and keywords
+    :param not_filter: String with the entered not keywords
 
-    :return or_list: List with OR search terms.
-    :return and_fitler: List with AND search terms.
-    :return not_filter: List with NOT search terms.
-    :return gene_filter: List with gene filter search terms.
+    :return query: String with a pubmed search query
     """
-    try:
-        # The or_list will be edited here
-        if or_list is not None:
-            or_list2 = str(or_list)
-            if "['" in or_list2:  # [] gets replaced by ()
-                list_or2 = or_list2.replace("['", "(").replace("']",
-                                                               " [tiab])")
-            if "" not in list_or2:  # Checks if list is empty
-                return
-            or_list2 = list_or2.replace(",", " [tiab] OR")
-            if ' OR ' in or_list2:  # some OR's gets replaced by AND
-                or_list2 = or_list2.replace("' [tiab] OR '", " [tiab]) AND (")
+    # Creates empty string
+    query = ""
+
+    # If the or_list is not empty it adds the values to the query string
+    # Also adds brackets and [tiab]
+    if or_list:
+        for i in range(len(or_list)):
+            if ", " in or_list[i]:
+                keywords = or_list[i].split(", ")
+                for j in range(len(keywords)):
+                    keywords[j] = "(" + str(keywords[j]) + " [tiab])"
+                    if keywords[j] != keywords[-1]:
+                        query += keywords[j] + " OR "
+                    else:
+                        if or_list[i] != or_list[-1]:
+                            query += keywords[j] + " AND "
+                        else:
+                            query += keywords[j]
+            else:
+                if or_list[i] != or_list[-1]:
+                    query += "(" + or_list[i] + " [tiab]) AND "
+                else:
+                    query += "(" + or_list[i] + " [tiab])"
+
+    # If the and_filter is not empty it adds the values to the query
+    # string. Also adds brackets and [tiab]
+    if and_filter:
+        if query:
+            if ", " in and_filter:
+                keywords = and_filter.split(", ")
+                for i in range(len(keywords)):
+                    query += " AND (" + keywords[i] + " [tiab])"
+            else:
+                query += " AND (" + and_filter + " [tiab])"
         else:
-            or_list2 = str(or_list)
+            if ", " in and_filter:
+                keywords = and_filter.split(", ")
+                for i in range(len(keywords)):
+                    if i == 0:
+                        query += "(" + keywords[i] + " [tiab])"
+                    else:
+                        query += " AND (" + keywords[i] + " [tiab])"
+            else:
+                query += "(" + and_filter + " [tiab])"
 
-        # The and_filter list will be edited here
-        if and_filter is not None:
-            and_filter2 = str(and_filter)
-            # Commas get replaced by OR
-            and_filter2 = and_filter2.replace(",", " [tiab] OR")
+    # If the not_filter is not empty it adds the values to the query
+    # string. Also adds brackets and [tiab]
+    if not_filter:
+        if query:
+            if ", " in not_filter:
+                keywords = not_filter.split(", ")
+                for i in range(len(keywords)):
+                    query += " NOT (" + keywords[i] + " [tiab])"
+            else:
+                query += " NOT (" + not_filter + " [tiab])"
         else:
-            and_filter2 = str(and_filter)
+            if ", " in not_filter:
+                keywords = not_filter.split(", ")
+                for i in range(len(keywords)):
+                    if i == 0:
+                        query += "NOT (" + keywords[i] + " [tiab])"
+                    else:
+                        query += " NOT (" + keywords[i] + " [tiab])"
+            else:
+                query += "NOT (" + not_filter + " [tiab])"
 
-        # The not_filter list will be edited here
-        if not_filter is not None:
-            not_filter2 = str(not_filter)
-            # Commas get replaced by NOT
-            not_filter2 = not_filter.replace(",", " [tiab] NOT")
-        else:
-            not_filter2 = str(not_filter)
-
-        # The gene_filter list will be edited here
-        if gene_filter is not None:
-            gene_filter2 = str(gene_filter)
-            # Commas get replaced by OR
-            gene_filter2 = gene_filter.replace(",", " [tiab] OR")
-        else:
-            gene_filter2 = str(gene_filter)
-
-        return or_list2, and_filter2, not_filter2, gene_filter2
-
-    except ValueError:
-        pass
-
-
-def making_query(or_list2, and_filter2, not_filter2, gene_filter2):
-    """
-    This function combines the 4 filters into a query. This
-    query can be used for searching the PubMed in the titel and
-    abstract ([tiab]).
-
-    :param or_list2: List with OR search terms.
-    :param and_filter2: List with AND search terms.
-    :param not_filter2: List with NOT search terms.
-    :param gene_filter2: List with gene filter search terms.
-
-    :return query: Query, made by combining the or_list, and_filter, not_filter
-    and gene_filter.
-    """
-    try:
-        query = []  # Creating empty list
-        if or_list2 != "":  # Query of the or_list added to empty
-            # query list
-            query_or = or_list2
-            query.append(query_or)
-        else:
-            pass
-        if and_filter2 != "":  # Query of the and_filter added to empty
-            # query list
-            query_and = " AND (", and_filter2
-            query_and = str(query_and).replace(" ', '", " ").replace(
-                "'", "").replace(", ", "").replace(")", " [tiab])")
-            query.append(query_and)
-        else:
-            pass
-        if not_filter2 != "":  # Query of the not_filter added to empty
-            # query list
-            query_not = " AND (NOT", not_filter2
-            query_not = str(query_not).replace(" ', '", "").replace(
-                "'", "").replace(",", "").replace(")", " [tiab])")
-            query.append(query_not)
-        else:
-            pass
-        if gene_filter2 != "":  # Query of the gene_filter added to
-            # empty query list
-            query_gene = " AND ", gene_filter2
-            query_gene = str(query_gene).replace("'", "").replace(
-                ", """, "(").replace(")", " [tiab])")
-            query.append(query_gene)
-        else:
-            pass
-
-        # Making the final query
-        query = str(query).replace("', '( ", " ").replace("['", "(") \
-            .replace("']", ")")
-        return query
-
-    except ValueError:
-        pass
+    # Returns the created query
+    return query
 
 
 def get_pubmed_ids(query, date_filter):
@@ -779,7 +752,6 @@ def save_results():
     """
     results = request.form['results']
     results = ast.literal_eval(results)
-    print(results)
     try:
         selected_extension = request.form["file_extension"]
     except:
