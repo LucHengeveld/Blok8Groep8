@@ -2,49 +2,164 @@
 <html lang="en">
     <head>
         <link href="../static/style.css" rel="stylesheet" type="text/css">
-        <TITLE>Info</TITLE>
+        <title>Info</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+        <style>
+            .accordion {
+              background-color: #eee;
+              color: #444;
+              cursor: pointer;
+              padding: 18px;
+              width: 100%;
+              border: none;
+              text-align: left;
+              outline: none;
+              font-size: 15px;
+              transition: 0.4s;
+            }
+
+            .active, .accordion:hover {
+              background-color: #ccc;
+            }
+
+            .accordion:after {
+              content: '\002B';
+              color: #777;
+              font-weight: bold;
+              float: right;
+              margin-left: 5px;
+            }
+
+            .active:after {
+              content: "\2212";
+            }
+
+            .panel {
+              padding: 0 18px;
+              background-color: white;
+              max-height: 0;
+              overflow: hidden;
+              transition: max-height 0.2s ease-out;
+            }
+        </style>
     </head>
 
     <body>
         <ul>
-            <li><a href="home.html">Home</a></li>
-            <li><a class="active" href="info.html">Info</a></li>
+            <li><a class="active" href="home.html">Home</a></li>
+            <li><a href="info.html">Info</a></li>
         </ul>
 
-        <div style="width:85%;padding:20px;">
-                <h2>Information on how this application is supposed to be used can be found here.</h2>
-            <h3>OR keywords</h3>
-                The OR keywords are the keywords of which at least one has to be in the PubMed articles.
-                The OR keywords can be added in the OR input field. The keywords have to be separated by commas.
-                To add multiple OR statements click on the button 'Click to add more OR input fields'.
-                These OR input fields can be removed by clicking on the button 'Click to remove the last OR input field' which removes the input field that has been added most recently. <br><br>
-            <h3>AND keywords</h3>
-                The AND keywords are the keywords that all have to be in the PubMed articles.
-                The AND keywords can be added in the AND input field. The keywords have to be separated by commas. <br><br>
-            <h3>NOT keywords</h3>
-                The NOT keywords are the keywords that are not allowed to be in the PubMed articles.
-                The NOT keywords can be added in the NOT input field. The keywords have to be separated by commas. <br><br>
-            <h3>Gene names</h3>
-                The gene names are the names of the genes that will be searched for in the PubMed articles.
-                The gene names can added in the gene names input field. The genes have to be separated by commas. <br><br>
-            <h3>Publication date</h3> <!--- Error als er geen
-            resultaten zijn na een bepaalde datum, niet ingevoerd =
-            alle resultaten krijgen--->
-                A publication date can be given by clicking on the calendar icon and selecting a date or by typing the date in the input field.
-                The chosen date is the earliest date for which PubMed articles will be searched. <br><br>
-            <h3>Gene panel</h3> <!--- Error als er geen
-            resultaten bij een verkeerd bestand, en is verplicht,
-            moet excel file zijn--->
-                The gene panel selection are the names of the gene panels that will be compared with the genes that have been found.
-                The gene panels can be added in the gene panel input field. The gene panels have to be separated by commas. <br><br>
-            <h3>E-mail</h3>
-                An e-mail has to be added for NCBI to send an e-mail to incase of overloading.
-                The e-mail can be added in the e-mail input field. <br><br>
-            <h3>Results</h3> <!--- Er wordt gefilterd op datum --->
-                Results are shown after the button 'Search for PubMed articles' has been clicked.
-                Firstly a list of all the specified filters is shown.
-                After that a table will be shown with the found genes, the title of the PubMed article with a link to that article, the publication date and potentially the gene panels the gene is in.
-                The results can be converted to a file by selecting one of the file extensions and clicking the button 'Save results'.
+        <h2>Extra information about the use of this application.</h2>
+        <p>Click on the subject for more information.</p>
+        <br>
+        <button class="accordion">OR keywords</button>
+        <div class="panel">
+            <p>The OR keywords are the keywords of which at least one
+                has to be in the PubMed articles. The OR keywords can
+                be added in the OR input field. The keywords have to be
+                separated by commas. To add multiple OR statements
+                click on the button 'Click to add more OR input fields'.
+                These OR input fields can be removed by clicking on the
+                button 'Click to remove the last OR input field' which
+                removes the input field that has been added most
+                recently.
+                <b>Only one OR field is mandatory.</b>
+                <br><br></p>
         </div>
+
+        <button class="accordion">AND keywords</button>
+        <div class="panel">
+            <p>The AND keywords are the keywords that all have to be
+                in the PubMed articles. The AND keywords can be added
+                in the AND input field. The keywords have to be
+                separated by commas.
+                This field is <b>not</b> mandatory. <br><br></p>
+        </div>
+
+        <button class="accordion">NOT keywords</button>
+        <div class="panel">
+            <p>The NOT keywords are the keywords that are not allowed
+                to be in the PubMed articles. The NOT keywords can be
+                added in the NOT input field. The keywords have to be
+                separated by commas. This field is <b>not</b> mandatory.
+                <br><br></p>
+        </div>
+
+        <button class="accordion">Gene names</button>
+        <div class="panel">
+            <p>The gene names are the names of the genes that will be
+                searched for in the PubMed articles.
+                The gene names can added in the gene names input field.
+                The genes have to be separated by commas. This field is
+                <b>not</b> mandatory. <br><br></p>
+        </div>
+
+        <button class="accordion">Publication date</button>
+        <div class="panel">
+            <p>A publication date can be given by clicking on the
+                calendar icon and selecting a date or by typing the
+                date in the input field.
+                The chosen date is the earliest date for which PubMed
+                articles will be searched. If there is
+                <b>no publication date</b> given, all the results
+                will be shown. When there are no results after a
+                certain date, there will be an error.<br><br></p>
+        </div>
+
+        <button class="accordion">Gene panel</button>
+        <div class="panel">
+            <p>The gene panel selection are the names of the gene
+                panels that will be compared with the genes that have
+                been found. The excluding of gene panels
+                have to be separated by commas.
+                The gene panels can be added in the gene panel input
+                field. The gene panel file has to be an <b>Excel
+                    file</b>, so any gene panel could be implemented.
+                There will occur an error when it's not an Excel file.
+                <br><br></p>
+        </div>
+
+        <button class="accordion">E-mail</button>
+        <div class="panel">
+            <p>An e-mail has to be added for NCBI to send an e-mail
+                to in case of overloading. The e-mail can be added in
+                the e-mail input field. This field is <b>not</b>
+                mandatory, but it could be very helpful.
+                <br><br></p>
+        </div>
+
+        <button class="accordion">Results</button>
+        <div class="panel">
+            <p>Results are shown after the button 'Search for PubMed
+                articles' has been clicked. Firstly a list of all the
+                specified filters is shown. After that a table will
+                be shown with the found genes, the title of the
+                PubMed article with a link to that article, the
+                publication date and potentially the gene panels the
+                gene is in. <b>The article and genes with the highest
+                    relevance score will be shown on top</b>. The results can
+                be converted to a file by selecting one of the file
+                extensions and clicking the button 'Save results'.</p>
+        </div>
+
+        <script>
+        var acc = document.getElementsByClassName("accordion");
+        var i;
+
+        for (i = 0; i < acc.length; i++) {
+          acc[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var panel = this.nextElementSibling;
+            if (panel.style.maxHeight) {
+              panel.style.maxHeight = null;
+            } else {
+              panel.style.maxHeight = panel.scrollHeight + "px";
+            }
+          });
+        }
+        </script>
+
     </body>
 </html>

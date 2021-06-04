@@ -326,7 +326,8 @@ def retrieve_data(or_list, and_filter, not_filter, gene_filter):
 def making_query(or_list2, and_filter2, not_filter2, gene_filter2):
     """
     This function combines the 4 filters into a query. This
-    query can be used for searching the PubMed.
+    query can be used for searching the PubMed in the titel and
+    abstract ([tiab]).
 
     :param or_list2: List with OR search terms.
     :param and_filter2: List with AND search terms.
@@ -368,6 +369,8 @@ def making_query(or_list2, and_filter2, not_filter2, gene_filter2):
             query.append(query_gene)
         else:
             pass
+
+        # Making the final query
         query = str(query).replace("', '( ", " ").replace("['", "(") \
             .replace("']", ")")
         return query
