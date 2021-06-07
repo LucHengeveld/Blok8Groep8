@@ -104,7 +104,7 @@ def gene_synonyms(synonyms, gps_list, genes_dict, gene_panel_dict):
     and the genes and gene synonyms as values
     """
     for row in range(len(synonyms)):
-        synonyms[row] = str(synonyms[row]).split("|")
+        synonyms[row] = str(synonyms[row]).upper().split("|")
         for gene in range(len(synonyms[row])):
             genes_dict[synonyms[row][gene]] = gps_list[row]
             for genpanel in gps_list[row]:

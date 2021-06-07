@@ -76,7 +76,7 @@ def read_pubtator_file(pubtator_link, gene_panel_dict, genepanel_filter,
                     gene = lines[i].split("\t")[3] + " " + \
                            lines[i].split("\t")[-1]
                     genefilter_boolean = False
-                    if " " not in lines[i].split("\t")[3]:
+                    if " " not in lines[i].split("\t")[3] and "-" not in lines[i].split("\t")[3]:
                         for j in range(len(genefilter_lijst)):
                             if genefilter_lijst and lines[i].split("\t")[3] \
                                     == genefilter_lijst[j]:
@@ -105,9 +105,9 @@ def read_pubtator_file(pubtator_link, gene_panel_dict, genepanel_filter,
                                                         genepanelboolean = True
                                             if not genepanelboolean:
                                                 if gene not in genelist:
-                                                    genelist.append(gene)
+                                                    genelist.append(gene.upper())
                                         else:
-                                            genelist.append(gene)
+                                            genelist.append(gene.upper())
 
                 elif "Disease" in lines[i]:
                     disease = lines[i].split("\t")[3] + " " + \
