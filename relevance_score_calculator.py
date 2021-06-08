@@ -14,17 +14,22 @@ def get_values_for_relevance(or_list, and_filter, gene_filter):
     and gene_filter
     """
     filters = []
+    # Retrieves or filters
     for or_filter in or_list:
         for or_fil in or_filter.split(", "):
             if or_fil == "":
                 pass
             else:
                 filters.append(or_fil)
+
+    # Retrieves and filters
     for and_fil in and_filter.split(", "):
         if and_fil == "":
             pass
         else:
             filters.append(and_fil)
+
+    # Retrieves gene filters
     for gene_fil in gene_filter.split(", "):
         if gene_fil == "":
             pass
@@ -48,6 +53,7 @@ def get_relevance_score(results, filters):
     score
     """
     relevance_score = []
+    # Loops through the results dictionary
     for key, value in results.items():
         rel_score = 0
         for filter in filters:

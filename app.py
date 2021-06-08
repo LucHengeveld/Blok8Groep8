@@ -26,6 +26,7 @@ def get_input():
     """
     if request.method == 'POST':
         try:
+            # Retrieving all filters from the website
             or_filter = request.form["or_filter"]
             or_list = request.form.getlist('or_list')
             or_list.insert(0, or_filter)
@@ -36,6 +37,7 @@ def get_input():
             date_filter = request.form["date_filter"]
 
             try:
+                # Retrieve the genepanel file if entered
                 genepanel_file = request.files["genepanel_file"]
                 genepanel_file_name = genepanel_file.filename
                 genepanel_file.save(genepanel_file_name)
@@ -43,17 +45,23 @@ def get_input():
                 genepanel_file = ""
                 genepanel_file_name = "No file selected."
 
+            # Retrieve the genepanel filter
             genepanel_filter = request.form["genepanel_filter"]
 
+            # Retrieve the entered email
             email = request.form["email"]
 
             try:
+                # Check if the co-occurence radiobutton is selected
                 use_co_occurence = request.form["occurence"]
             except:
                 use_co_occurence = "Not selected"
 
+            # Uses the entered email for the NCBI services
             Entrez.email = email
 
+            # If a genepanel file is entered, it will retrieve the genes
+            # and the genepanels. These will be added to dictionary's
             if genepanel_file:
                 gp_table = gpr.excel_reader(genepanel_file)
                 genes = gpr.get_column(gp_table, "GenePanels_Symbol")
@@ -69,12 +77,17 @@ def get_input():
                                                                 gene_panel_dict
                                                                 )
             else:
+                # If no genepanel file is entered, the dictionary's with
+                # the genes and corresponding genepanels will be empty
                 gene_panel_dict = {}
                 genes_dict = {}
 
+            # Makes a query to search PubMed with
             query = qb.make_query(or_list, and_filter, not_filter)
 
             if not query:
+                # If the query is empty, so if the user has not entered
+                # any searching words, it will return the error page
                 return render_template("home_error.html",
                                        or_list=or_list,
                                        and_filter=and_filter,
@@ -86,23 +99,39 @@ def get_input():
                                        email=email,
                                        use_co_occurence=use_co_occurence)
 
+            # Retrieves the PubMed IDs
             id_list = pmag.get_pubmed_ids(query, date_filter)
+
+            # Creates a pubtator link with the PubMed IDs
             pubtator_link = rg.get_pubtator_link(id_list)
 
+            # Reads the pubtator link as a text file and retrieves the
+            # title, abstract, genes and diseases out of each article.
             results = rg.read_pubtator_file(pubtator_link, gene_panel_dict,
                                             genepanel_filter, gene_filter)
+
+            # Creates the PubTator hyperlink with the article IDs
             results = rg.pubtator_hyperlink(results)
+
+            # Retrieves the publication date of each article
             results = rg.publication_date(results)
+
+            # Adds the corresponding genepanels to the genes
             results = rg.genepanel_results(results, genes_dict)
 
+            # Calculates the top 3 possible diseases for each gene with
+            # co-occurence
             diseasepoints = coc.co_occurrence(results, 3)
             results = coc.add_co_occurrence_to_results(results, diseasepoints)
 
+            # Calculates the relevance score for every article. Highest
+            # scoring articles will be shown on top of the results page
             filters = rsc.get_values_for_relevance(or_list, and_filter,
                                                    gene_filter)
             relevance_score = rsc.get_relevance_score(results, filters)
             relevance_score = rsc.sort_relevance_score(relevance_score)
 
+            # Renders the results page
             return render_template("results.html",
                                    or_list=or_list,
                                    and_filter=and_filter,
@@ -116,6 +145,8 @@ def get_input():
                                    results=results,
                                    relevance_score=relevance_score)
         except:
+            # If the application finds no results, the entered search
+            # words will retrieved and shown on the website
             or_filter = request.form["or_filter"]
             or_list = request.form.getlist('or_list')
             or_list.insert(0, or_filter)
@@ -142,6 +173,7 @@ def get_input():
             except:
                 use_co_occurence = "Not selected"
 
+            # Returns the error page when no results are found
             return render_template("home_error.html",
                                    or_list=or_list,
                                    and_filter=and_filter,
@@ -154,6 +186,7 @@ def get_input():
                                    use_co_occurence=use_co_occurence)
 
     else:
+        # Returns the home page
         return render_template("home.html",
                                or_list="",
                                and_filter="",
@@ -177,19 +210,23 @@ def save_results():
     :return send_file: downloads the file with the results to the user's
     pc
     """
+    # Retrieves the results dictionary from the website
     results = request.form['results']
     results = ast.literal_eval(results)
+
+    # Retrieves the selected file extension
     try:
         selected_extension = request.form["file_extension"]
     except:
         selected_extension = "tsv"
 
+    # Creates a file name to write the results to
     if selected_extension == "txt":
         output_file = "results.txt"
     else:
         output_file = "results.tsv"
 
-    # Write results to file
+    # Write results to txt / tsv file
     with open(output_file, 'w', newline='') as out_file:
         tsv_writer = csv.writer(out_file, delimiter='\t')
         tsv_writer.writerow(
@@ -223,6 +260,7 @@ def save_results():
 
     out_file.close()
 
+    # Convert tsv file to xlsx file
     if selected_extension == "xlsx":
         xlsx_file = 'results.xlsx'
         workbook = Workbook(xlsx_file, {'strings_to_numbers': True})
@@ -232,6 +270,7 @@ def save_results():
             worksheet.write_row(row, 0, data)
         workbook.close()
 
+    # Saves the output file name to a variable
     if selected_extension == "xlsx":
         output = "results.xlsx"
     elif selected_extension == "txt":
@@ -239,6 +278,7 @@ def save_results():
     else:
         output = "results.tsv"
 
+    # Returns the file to the user
     if selected_extension == "xlsx":
         return send_file(attachment_filename=output, filename_or_fp=output,
                          mimetype="xlsx", as_attachment=True)
@@ -256,6 +296,7 @@ def info():
 
     :return render template: shows the info.html page to the user
     """
+    # Returns the info page
     return render_template('info.html')
 
 

@@ -52,68 +52,89 @@ def read_pubtator_file(pubtator_link, gene_panel_dict, genepanel_filter,
     # Splits the text in lines.
     lines = pubtator_text.split("\n")
 
-    # Checks if the line is the title, the abstract, a gene, a disease
-    # and adds the information to lists.
+    # Creates an empty dictionary and 3 empty lists
     results = {}
     genelist = []
     diseaselist = []
     genepanel_filter_lijst = []
+
+    # Check if the user entered a gene filter
     if gene_filter != "":
         genefilter_lijst = gene_filter.split(", ")
     else:
         genefilter_lijst = []
+
+    # Loops through the PubTator text lines
     for i in range(len(lines)):
+
+        # If "|t| is in the line, it saves it as the ID and title
         if "|t|" in lines[i]:
             article_id = lines[i].split("|t|")[0]
             title = lines[i].split("|t|")[1]
 
+        # If "|a| is in the line, it saves it as the abstract
         elif "|a|" in lines[i]:
             abstract = lines[i].split("|a|")[1]
 
+        # If the line isnt emtpy it checks if the line contains "Gene"
         elif lines[i] != "":
-            if lines[i] != "":
-                if "Gene" in lines[i]:
-                    gene = lines[i].split("\t")[3] + " " + \
-                           lines[i].split("\t")[-1]
-                    genefilter_boolean = False
-                    if " " not in lines[i].split("\t")[3] and "-" not in lines[i].split("\t")[3]:
-                        for j in range(len(genefilter_lijst)):
-                            if genefilter_lijst and lines[i].split("\t")[3] \
-                                    == genefilter_lijst[j]:
-                                genefilter_boolean = True
-                        if genefilter_boolean or not genefilter_lijst:
-                            if gene.upper() not in genelist:
-                                if gene.lower() not in genelist:
-                                    if gene not in genelist:
-                                        if genepanel_filter != "":
-                                            genepanelboolean = False
-                                            if "," in genepanel_filter. \
-                                                    replace(" ", ""):
-                                                genepanel_filter_lijst = \
-                                                    genepanel_filter.upper() \
-                                                        .replace(" ", "") \
-                                                        .split(",")
-                                            else:
-                                                genepanel_filter_lijst.append(
-                                                    genepanel_filter.upper())
-                                            for j in genepanel_filter_lijst:
-                                                if j in gene_panel_dict.keys():
-                                                    if lines[i].split("\t")[
-                                                        3].upper() \
-                                                            in \
-                                                            gene_panel_dict[j]:
-                                                        genepanelboolean = True
-                                            if not genepanelboolean:
-                                                if gene not in genelist:
-                                                    genelist.append(gene.upper())
-                                        else:
-                                            genelist.append(gene.upper())
+            if "Gene" in lines[i]:
+                # Saves the gene ID and gene name to a variable
+                gene = lines[i].split("\t")[3] + " " + \
+                       lines[i].split("\t")[-1]
+                genefilter_boolean = False
 
-                elif "Disease" in lines[i]:
-                    disease = lines[i].split("\t")[3] + " " + \
-                              lines[i].split("\t")[-1]
-                    if disease not in diseaselist:
-                        diseaselist.append(disease)
+                # Continues if the gene name doesnt have a space or -
+                # This filters out most false positives
+                if " " not in lines[i].split("\t")[3] and "-" not in \
+                        lines[i].split("\t")[3]:
+
+                    # If a gene filter is entered by the user, it
+                    # compares the PubTator genes to the gene filter
+                    for j in range(len(genefilter_lijst)):
+                        if genefilter_lijst and lines[i].split("\t")[3] \
+                                == genefilter_lijst[j]:
+                            genefilter_boolean = True
+
+                    # Checks if the gene is already added to the list
+                    if genefilter_boolean or not genefilter_lijst:
+                        if gene.upper() not in genelist and gene.lower() not \
+                                in genelist and gene not in genelist:
+
+                            # Continues if genepanel filter isn't empty
+                            if genepanel_filter != "":
+                                genepanelboolean = False
+
+                                # Checks if multiple genepanels are
+                                # entered by the user
+                                if "," in genepanel_filter.replace(" ", ""):
+                                    genepanel_filter_lijst = genepanel_filter.\
+                                        upper().replace(" ", "").split(",")
+                                else:
+                                    genepanel_filter_lijst.append(
+                                        genepanel_filter.upper())
+
+                                # Loops through the genepanel filters
+                                # and leaves the corresponding genes out
+                                # of the results
+                                for j in genepanel_filter_lijst:
+                                    if j in gene_panel_dict.keys():
+                                        if lines[i].split("\t")[3].upper() in gene_panel_dict[j]:
+                                            genepanelboolean = True
+                                if not genepanelboolean:
+                                    if gene not in genelist:
+                                        genelist.append(gene.upper())
+                            else:
+                                # If no genepanel filter is entered, it
+                                # adds all found genes to the gene list
+                                genelist.append(gene.upper())
+
+            # If the line isnt emtpy it checks if the line contains "Gene"
+            elif "Disease" in lines[i]:
+                disease = lines[i].split("\t")[3] + " " + \
+                          lines[i].split("\t")[-1]
+                if disease not in diseaselist:
+                    diseaselist.append(disease)
 
         # if the line is empty, which means its the end of an article,
         # it will add the title, abstract, genelist and diseaselist to
@@ -203,6 +224,7 @@ def genepanel_results(results, genes_dict):
     a list with the structure [title, abstract, genelist, diseaselist,
     hyperlink, publication date, genepanels]
     """
+    # Loops through the genes and adds the genepanels to them
     for key in results:
         genepanel = []
         for gene in results[key][2]:

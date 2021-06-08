@@ -103,6 +103,8 @@ def gene_synonyms(synonyms, gps_list, genes_dict, gene_panel_dict):
     :return gene_panel_dict: the dictionary with the gene panels as keys
     and the genes and gene synonyms as values
     """
+    # Loops through the synonyms and adds them and the corresponding
+    # genepanels to the genes_dict and gene_panel_dict
     for row in range(len(synonyms)):
         synonyms[row] = str(synonyms[row]).upper().split("|")
         for gene in range(len(synonyms[row])):
