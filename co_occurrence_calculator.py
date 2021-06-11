@@ -1,3 +1,8 @@
+"""
+This module calculates the co-occurrence score.
+"""
+
+
 def co_occurrence(results, pos):
     """
     This function gives points to every combination of genes and

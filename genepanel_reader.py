@@ -1,3 +1,8 @@
+"""
+This module reads the gene panel file.
+"""
+
+
 import re
 import pandas as pd
 

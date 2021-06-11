@@ -1,3 +1,8 @@
+"""
+This module makes the query.
+"""
+
+
 def make_query(or_list, and_filter, not_filter):
     """
     This function creates and returns a query out of the entered

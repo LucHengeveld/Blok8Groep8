@@ -1,3 +1,10 @@
+"""
+This module is the main function and makes the web application.
+
+authors: Luc Hengeveld, Christel van Haren en Margo Raijmakers
+last updated: 11-06-2021
+"""
+
 from flask import Flask, render_template, request, send_file
 from Bio import Entrez
 import csv

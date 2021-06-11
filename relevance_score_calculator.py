@@ -1,3 +1,8 @@
+"""
+This module calculates the relevance score.
+"""
+
+
 import re
 
 

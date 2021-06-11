@@ -1,3 +1,8 @@
+"""
+This module retrieves the PubMed articles.
+"""
+
+
 from datetime import datetime
 from Bio import Entrez
 

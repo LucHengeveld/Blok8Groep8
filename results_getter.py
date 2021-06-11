@@ -1,3 +1,8 @@
+"""
+This module gets the results.
+"""
+
+
 import requests
 from Bio import Entrez, Medline
 
@@ -119,7 +124,8 @@ def read_pubtator_file(pubtator_link, gene_panel_dict, genepanel_filter,
                                 # of the results
                                 for j in genepanel_filter_lijst:
                                     if j in gene_panel_dict.keys():
-                                        if lines[i].split("\t")[3].upper() in gene_panel_dict[j]:
+                                        if lines[i].split("\t")[3].upper() in \
+                                                gene_panel_dict[j]:
                                             genepanelboolean = True
                                 if not genepanelboolean:
                                     if gene not in genelist:
